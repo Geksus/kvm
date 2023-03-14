@@ -1,0 +1,114 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}KVM Table{% endblock %}</title>
+    <style>
+        table {
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid black;
+            padding: 5px;
+        }
+
+        th {
+            text-align: center;
+            font-size: 14px;
+        }
+
+        td {
+            text-align: center;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .create-user-form {
+            position: fixed;
+            top: 20%;
+            left: 20%;
+            width: 60%;
+            background-color: white;
+            padding: 20px;
+            border: 1px solid black;
+        }
+
+        .create-user-form label {
+            display: inline-block;
+            width: 100px;
+            text-align: right;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+
+        .create-user-form input[type="text"], .create-user-form input[type="submit"] {
+            font-size: 14px;
+            padding: 5px;
+        }
+
+        .create-user-form .message {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+    </style>
+
+</head>
+<body>
+    <h1>KVM Port Status</h1>
+    <form method="get">
+        {{ filter.form.as_p }}
+        <button type="submit">Filter</button>
+    </form>
+    <table id="port-table">
+        <thead>
+            <tr>
+                <th>Row</th>
+                {% for rack in num_racks %}
+                    <th colspan="2">Rack {{ rack }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in num_rows %}
+                <tr>
+                    <td>{{ row }}</td>
+                    {% for rack in num_racks %}
+                        <td id="port-{{ row }}-{{ rack }}-1"></td>
+                        <td id="port-{{ row }}-{{ rack }}-2"></td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+<script>
+  var portList = {{ port_list|safe }};
+  for (var i = 0; i <= portList.length; i++) {
+    var port = portList[i];
+    var portElement = document.getElementById("port-" + port.row + "-" + port.rack + "-" + port.rack_port);
+    var content = "";
+    if (port.short_name !== "-") {
+      content += "User: " + port.username + "<br/>";
+      content += "Stop Time: " + port.stop_time + "<br/>";
+      content += "KVM: " + port.short_name + "/" + port.kvm_port;
+      if (port.username !== '-') {
+        portElement.style.backgroundColor = "red";
+      } else {
+        portElement.style.backgroundColor = "green";
+        portElement.setAttribute('onclick', 'openCreateUserForm(' + port.row + ', ' + port.rack + ', ' + port.rack_port + ')');
+      }
+    } else {
+      content = "-";
+      portElement.style.backgroundColor = "green";
+    }
+    portElement.innerHTML = content;
+  }
+
+  function openCreateUserForm(row, rack, rack_port) {
+    var win = window.open('create_user?row=' + row + '&rack=' + rack + '&rack_port=' + rack_port, '_blank', 'width=500,height=500');
+  }
+</script>
+
+</body>
+</html>

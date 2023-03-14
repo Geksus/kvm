@@ -1,0 +1,79 @@
+{% block content%}
+<style>
+    .cross_td {
+        cursor: pointer;
+    }
+    .active {
+        background-color: green;
+    }
+    .inactive {
+        background-color: red;
+    }
+</style>
+
+<!-- Add a class to the table to make it easier to select with JavaScript -->
+<table class="TABLE" id="my-table">
+    <tr>
+        <td>&nbsp;</td>
+        {% for i in num_racks %}
+            <th colspan="2">Rack {{ i }}</th>
+        {% endfor %}
+    </tr>
+    {% for row,racks in cross_render.items %}
+        <tr>
+            <td>{{row}}</td>
+            {% for rack,rack_ports in racks.items %}
+                <td class="cross_td {% if active %}active{% else %}inactive{% endif %}" data-row="{{row}}" data-rack="{{rack}}" data-port="1">
+                    {% for port, port_attrs in rack_ports.items %}
+                        {% if port == 1 %}
+                            <span class="port">
+                                {% if port_attrs.kvm_id %} Rack port {{ port }}
+                                    <br>
+                                    {{port_attrs.kvm_id}}
+                                {% else %} -  {% endif %}
+                                {% if port_attrs.kvm_port %} [Port: {{port_attrs.kvm_port}}] {% else %} [-] {% endif %}
+                                /
+                                {% if port_attrs.kvm_port_active %} Yes {% else %} No {% endif %}
+                            </span>
+                        {% endif %}
+                    {% endfor %}
+                </td>
+                <td class="cross_td {% if port_attrs.kvm_port_active %}active{% else %}inactive{% endif %}" data-row="{{row}}" data-rack="{{rack}}" data-port="2">
+                    {% for port, port_attrs in rack_ports.items %}
+                        {% if port == 2 %}
+                            <span class="port">
+                                {% if port_attrs.kvm_id %} Rack port {{ port }}
+                                    <br>
+                                    {{port_attrs.kvm_id}}
+                                {% else %} -  {% endif %}
+                                {% if port_attrs.kvm_port %} [Port: {{port_attrs.kvm_port}}] {% else %} [-] {% endif %}
+                                /
+                                {% if port_attrs.kvm_port_active %} Yes {% else %} No {% endif %}
+                            </span>
+                        {% endif %}
+                    {% endfor %}
+                </td>
+            {% endfor %}
+        </tr>
+    {% endfor %}
+</table>
+
+<script>
+    // Add a click event listener to each cell
+    const cells = document.querySelectorAll('#my-table td');
+    cells.forEach(cell => {
+        cell.addEventListener('click', () => {
+            // Get the data attributes of the cell
+            const row = cell.getAttribute('data-row');
+            const rack = cell.getAttribute('data-rack');
+            const port = cell.getAttribute('data-port');
+
+            // Open a new window with the creation form
+            window.open(`/create/?row=${row}&rack=${rack}&port=${port}`, 'New');
+        });
+    });
+</script>
+
+</body>
+
+{% endblock %}

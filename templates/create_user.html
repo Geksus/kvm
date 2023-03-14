@@ -1,0 +1,75 @@
+
+<div class="container">
+    <h1>{{ object|yesno:"Update,Create" }}  User</h1>
+    <form id="create-user-form" method="POST" action="{% url 'kvmwebapp:create_user' %}">
+        {% csrf_token %}
+        <div class="form-group row">
+            <label for="id_username" class="col-sm-3 col-form-label">Username:</label>
+            <div class="col-sm-9">
+                <input type="text" name="username" class="form-control" id="id_username" required>
+            </div>
+        </div>
+        <input type="hidden" name="row" value="{{ cross.row }}">
+        <input type="hidden" name="rack" value="{{ cross.rack }}">
+        <input type="hidden" name="rack_port" value="{{ cross.rack_port }}">
+        <div class="form-group row">
+            <label for="id_start_time" class="col-sm-3 col-form-label">Start Time:</label>
+            <div class="col-sm-9">
+                <input type="time" name="start_time" class="form-control" id="id_start_time" value="{{ current_time }}" required>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label for="id_stop_time" class="col-sm-3 col-form-label">Stop Time:</label>
+            <div class="col-sm-9">
+                <input type="time" name="stop_time" class="form-control" id="id_stop_time" required>
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class="col-sm-9 offset-sm-3">
+                <input type="submit" value="Create" class="btn btn-primary">
+            </div>
+        </div>
+    </form>
+    <div class="message"></div>
+</div>
+
+<script>
+    var row = {{ cross.row }};
+    var rack = {{ cross.rack }};
+    var rackPort = {{ cross.rack_port }};
+    var current_time = new Date();
+    var hour = current_time.getHours().toString().padStart(2, '0');
+    var minute = current_time.getMinutes().toString().padStart(2, '0');
+    var time = hour + ':' + minute;
+
+    document.getElementById('id_stop_time').required = true;
+    document.getElementById('id_username').disabled = true;
+
+    document.getElementById('id_start_time').value = time;
+
+    document.getElementById('create-user-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        var form = event.target;
+
+        fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams(new FormData(form))
+        }).then(function(response) {
+            if (response.ok) {
+                window.close();
+            } else {
+                response.json().then(function(data) {
+                    var message = '';
+                    for (var field in data.errors) {
+                        message += data.errors[field].join(' ') + '<br>';
+                    }
+                    document.querySelector('.message').innerHTML = message;
+                });
+            }
+        });
+    });
+</script>
+
