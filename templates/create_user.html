@@ -1,75 +1,81 @@
-
 <div class="container">
-    <h1>{{ object|yesno:"Update,Create" }}  User</h1>
+    <h1>Create User</h1>
     <form id="create-user-form" method="POST" action="{% url 'kvmwebapp:create_user' %}">
         {% csrf_token %}
         <div class="form-group row">
             <label for="id_username" class="col-sm-3 col-form-label">Username:</label>
             <div class="col-sm-9">
-                <input type="text" name="username" class="form-control" id="id_username" required>
+                <input type="text" class="form-control" id="id_username" name="username" required>
             </div>
         </div>
-        <input type="hidden" name="row" value="{{ cross.row }}">
-        <input type="hidden" name="rack" value="{{ cross.rack }}">
-        <input type="hidden" name="rack_port" value="{{ cross.rack_port }}">
+        <input type="hidden" name="row" value="{{ row }}">
+        <input type="hidden" name="rack" value="{{ rack }}">
+        <input type="hidden" name="rack_port" value="{{ rack_port }}">
         <div class="form-group row">
             <label for="id_start_time" class="col-sm-3 col-form-label">Start Time:</label>
             <div class="col-sm-9">
                 <input type="time" name="start_time" class="form-control" id="id_start_time" value="{{ current_time }}" required>
             </div>
         </div>
-        <div class="form-group row">
-            <label for="id_stop_time" class="col-sm-3 col-form-label">Stop Time:</label>
-            <div class="col-sm-9">
-                <input type="time" name="stop_time" class="form-control" id="id_stop_time" required>
-            </div>
-        </div>
+
         <div class="form-group row">
             <div class="col-sm-9 offset-sm-3">
                 <input type="submit" value="Create" class="btn btn-primary">
             </div>
         </div>
+        <input type="hidden" name="username" id="id_hidden_username">
     </form>
     <div class="message"></div>
 </div>
 
 <script>
-    var row = {{ cross.row }};
-    var rack = {{ cross.rack }};
-    var rackPort = {{ cross.rack_port }};
-    var current_time = new Date();
-    var hour = current_time.getHours().toString().padStart(2, '0');
-    var minute = current_time.getMinutes().toString().padStart(2, '0');
-    var time = hour + ':' + minute;
+function formatDate(date) {
+    var year = date.getFullYear();
+    var month = (date.getMonth() + 1).toString().padStart(2, '0');
+    var day = date.getDate().toString().padStart(2, '0');
+    var hours = date.getHours().toString().padStart(2, '0');
+    var minutes = date.getMinutes().toString().padStart(2, '0');
+    return year + '-' + month + '-' + day + 'T' + hours + ':' + minutes;
+}
 
-    document.getElementById('id_stop_time').required = true;
+
+document.getElementById('create-user-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    var form = event.target;
+
+    document.getElementById('id_hidden_username').value = document.getElementById('id_username').value;
     document.getElementById('id_username').disabled = true;
 
-    document.getElementById('id_start_time').value = time;
+    var now = new Date();
+    document.getElementById('id_start_time').value = formatDate(now);
 
-    document.getElementById('create-user-form').addEventListener('submit', function(event) {
-        event.preventDefault();
-        var form = event.target;
 
-        fetch(form.action, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: new URLSearchParams(new FormData(form))
-        }).then(function(response) {
-            if (response.ok) {
-                window.close();
-            } else {
-                response.json().then(function(data) {
-                    var message = '';
-                    for (var field in data.errors) {
-                        message += data.errors[field].join(' ') + '<br>';
-                    }
-                    document.querySelector('.message').innerHTML = message;
-                });
-            }
-        });
+    // Add the formatted stop_time to FormData
+    var formData = new FormData(form);
+
+
+    console.log('Submitting form with data:', formData);
+
+    fetch(form.action, {
+        method: 'POST',
+        body: formData
+    }).then(function(response) {
+        if (response.ok) {
+            console.log('Form submission successful');
+            window.close();
+        } else {
+            response.json().then(function(data) {
+                console.log('Form submission failed with errors:', data.errors);
+                var message = '';
+                for (var field in data.errors) {
+                    message += data.errors[field].join(' ') + '<br>';
+                }
+                document.querySelector('.message').innerHTML = message;
+            });
+        }
+    }).catch(function(error) {
+        console.error('Form submission error:', error);
     });
-</script>
+});
 
+</script>

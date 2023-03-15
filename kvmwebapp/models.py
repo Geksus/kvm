@@ -1,6 +1,7 @@
 from django.db import models
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_filters import rest_framework as filters
 
@@ -42,7 +43,7 @@ class Cross(models.Model):
             raise ValidationError(_('rack_port should not be bigger than 2.'))
 
         # Validate that rack_port and kvm_port are within the allowed range
-        if not (1 <= self.rack_port <= 48):
+        if not (1 <= self.rack_port <= 2):
             raise ValidationError(_('rack_port should be between 1 and 48.'))
         if not (1 <= self.kvm_port <= self.kvm_id.number_of_ports):
             raise ValidationError(_('kvm_port should be between 1 and %(num_ports)s.'),
@@ -64,14 +65,8 @@ class CrossFilter(filters.FilterSet):
 
 class User(models.Model):
     username = models.CharField(max_length=40, unique=True, help_text="username")
-    password = models.CharField(max_length=40, unique=False, help_text="password")
-    start_time = models.DateTimeField(default=datetime.now, blank=True)
-    stop_time = models.DateTimeField(blank=True, null=True, help_text="stop_time")
-
-    def clean(self):
-        # Validate that stop_time is after start_time
-        if self.stop_time and self.stop_time <= self.start_time:
-            raise ValidationError(_('stop_time should be after start_time.'))
+    password = models.CharField(max_length=255, unique=False, help_text="password")
+    start_time = models.DateTimeField(default=datetime.now(), blank=True)
 
     class Meta:
         db_table = "User"

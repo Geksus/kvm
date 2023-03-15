@@ -84,13 +84,14 @@
 
 <script>
   var portList = {{ port_list|safe }};
-  for (var i = 0; i <= portList.length; i++) {
+  for (var i = 0; i < portList.length; i++) {
     var port = portList[i];
+    console.log(port);
     var portElement = document.getElementById("port-" + port.row + "-" + port.rack + "-" + port.rack_port);
     var content = "";
     if (port.short_name !== "-") {
       content += "User: " + port.username + "<br/>";
-      content += "Stop Time: " + port.stop_time + "<br/>";
+      content += "Start Time: " + port.start_time + "<br/>";
       content += "KVM: " + port.short_name + "/" + port.kvm_port;
       if (port.username !== '-') {
         portElement.style.backgroundColor = "red";

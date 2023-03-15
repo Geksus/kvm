@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     'kvmwebapp',
     'django_filters',
     'django_bootstrap5',
-    'crispy_forms'
+    'crispy_forms',
+    'jupyter'
 ]
 
 MIDDLEWARE = [
