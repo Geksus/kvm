@@ -128,7 +128,7 @@ def create_user(request):
                 cross.user_id = user.id
                 cross.kvm_port_active = True
                 cross.save()
-            return JsonResponse({'success': True})
+            return JsonResponse({'success': True, 'username': user.username, 'password': user.password})
         else:
             print("Form errors:", form.errors)  # Debugging line
             return JsonResponse({'errors': form.errors})

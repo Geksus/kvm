@@ -60,22 +60,23 @@ document.getElementById('create-user-form').addEventListener('submit', function(
         method: 'POST',
         body: formData
     }).then(function(response) {
-        if (response.ok) {
+        return response.json();  // Always parse the JSON response
+    }).then(function(data) {
+        if (data.success) {
             console.log('Form submission successful');
-            window.close();
+            var message = 'Username: ' + data.username + '<br>Password: ' + data.password;
         } else {
-            response.json().then(function(data) {
-                console.log('Form submission failed with errors:', data.errors);
-                var message = '';
-                for (var field in data.errors) {
-                    message += data.errors[field].join(' ') + '<br>';
-                }
-                document.querySelector('.message').innerHTML = message;
-            });
+            console.log('Form submission failed with errors:', data.errors);
+            var message = '';
+            for (var field in data.errors) {
+                message += data.errors[field].join(' ') + '<br>';
+            }
         }
+        document.querySelector('.message').innerHTML = message;
     }).catch(function(error) {
         console.error('Form submission error:', error);
     });
 });
+
 
 </script>
