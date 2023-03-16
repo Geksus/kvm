@@ -72,8 +72,8 @@
 </head>
 <body>
     <h1>KVM Port Status</h1>
-    <h2>Server room 1</h2>
-    <h3><a class="dynamic-buttons" href="http://127.0.0.1:8000/2/">Server room 2</a></h3>
+    <h2>Server room 2</h2>
+    <h3><a class="dynamic-buttons" href="http://127.0.0.1:8000/">Server room 1</a></h3>
     <div id="countdown" style="position: fixed; top: 10px; right: 10px; font-size: 20px;"></div>
 {#    <form method="get">#}
 {#        {{ filter.form.as_p }}#}
@@ -124,7 +124,7 @@
         portElement.setAttribute('onclick', 'showUserInfo(' + port.user_id + ')');
       } else {
         portElement.style.backgroundColor = "green";
-        portElement.setAttribute('onclick', 'openCreateUserForm(' + port.row + ', ' + port.rack + ', ' + port.rack_port + ',' + port.server_room +')');
+        portElement.setAttribute('onclick', 'openCreateUserForm(' + port.row + ', ' + port.rack + ', ' + port.rack_port + ')');
       }
     } else {
       content = "-";
@@ -133,8 +133,8 @@
     portElement.innerHTML = content;
   }
 
-  function openCreateUserForm(row, rack, rack_port, server_room) {
-    var win = window.open('create_user?row=' + row + '&rack=' + rack + '&rack_port=' + rack_port + '&server_room=' + server_room, '_blank', 'width=500,height=500');
+  function openCreateUserForm(row, rack, rack_port) {
+    var win = window.open('create_user?row=' + row + '&rack=' + rack + '&rack_port=' + rack_port, '_blank', 'width=500,height=500');
   }
 
   // Refresh the page every 60 seconds

@@ -1,5 +1,5 @@
 from django.db import models
-from datetime import datetime, timedelta
+from datetime import datetime
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -29,9 +29,10 @@ class Cross(models.Model):
     rack_port = models.PositiveSmallIntegerField(help_text="rack_port")
     kvm_id = models.ForeignKey('KVM', on_delete=models.SET_NULL, null=True, blank=True, db_column="kvm_id",
                                help_text="id_hosts")
-    kvm_port = models.PositiveSmallIntegerField(unique=True, null=True, blank=True, help_text="kvm_port")
+    kvm_port = models.PositiveSmallIntegerField(unique=False, null=True, blank=True, help_text="kvm_port")
     kvm_port_active = models.BooleanField(default=False)
     user = models.OneToOneField('User', on_delete=models.SET_NULL, null=True, blank=True)
+    server_room = models.SmallIntegerField(default=1, help_text="server_room")
 
     def clean(self):
         # Validate that row is not bigger than 4, rack is not bigger than 14, and rack_port is not bigger than 2
@@ -51,6 +52,7 @@ class Cross(models.Model):
 
     class Meta:
         db_table = "Cross"
+        unique_together = ("row", "rack", "rack_port", "kvm_port", "server_room")
 
 
 class CrossFilter(filters.FilterSet):
