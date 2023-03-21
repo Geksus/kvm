@@ -32,7 +32,7 @@ class Cross(models.Model):
     kvm_port = models.PositiveSmallIntegerField(unique=False, null=True, blank=True, help_text="kvm_port")
     kvm_port_active = models.BooleanField(default=False)
     user = models.OneToOneField('User', on_delete=models.SET_NULL, null=True, blank=True)
-    server_room = models.SmallIntegerField(default=1, help_text="server_room")
+    server_room = models.ForeignKey('ServerRoom', on_delete=models.CASCADE, null=False, blank=False, db_column="server_room",)
 
     def clean(self):
         # Validate that row is not bigger than 4, rack is not bigger than 14, and rack_port is not bigger than 2
@@ -72,3 +72,16 @@ class User(models.Model):
 
     class Meta:
         db_table = "User"
+
+
+class ServerRoom(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True, null=True)
+    num_rows = models.PositiveSmallIntegerField(default=4)
+    num_racks = models.PositiveSmallIntegerField(default=14)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        db_table = "ServerRoom"

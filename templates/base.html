@@ -2,6 +2,28 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <script>
+function updateCountdown() {
+    var countdownElement = document.getElementById('countdown');
+    var remainingTime = parseInt(countdownElement.getAttribute('data-remaining-time'), 10) - 1;
+    countdownElement.setAttribute('data-remaining-time', remainingTime);
+    var minutes = Math.floor(remainingTime / 60);
+    var seconds = remainingTime % 60;
+    countdownElement.textContent = minutes + ':' + String(seconds).padStart(2, '0');
+    if (remainingTime > 0) {
+        setTimeout(updateCountdown, 1000);
+    } else {
+        location.reload();
+    }
+}
+
+    document.addEventListener('DOMContentLoaded', function() {
+    var countdownElement = document.getElementById('countdown');
+    countdownElement.setAttribute('data-remaining-time', 60);
+    updateCountdown();
+});
+</script>
+
     <title>{% block title %}KVM Table{% endblock %}</title>
     <style>
           .log-entry {
@@ -71,9 +93,11 @@
 
 </head>
 <body>
+    <div id="countdown" style="position: fixed; top: 10px; right: 10px; font-size: 20px;"></div>
+
     <h1>KVM Port Status</h1>
-    <h2>Server room 1</h2>
-    <h3><a class="dynamic-buttons" href="http://127.0.0.1:8000/2/">Server room 2</a></h3>
+    <h3><a class="dynamic-buttons" href="http://127.0.0.1:8000/">Server room 1</a></h3>
+    <h3><a class="dynamic-buttons" href="http://127.0.0.1:8000/server_room/2/">Server room 2</a></h3>
     <div id="countdown" style="position: fixed; top: 10px; right: 10px; font-size: 20px;"></div>
 {#    <form method="get">#}
 {#        {{ filter.form.as_p }}#}
@@ -110,8 +134,10 @@
 
 <script>
   var portList = {{ port_list|safe }};
+  console.log(portList.length)
   for (var i = 0; i < portList.length; i++) {
     var port = portList[i];
+    console.log(port)
     var portElement = document.getElementById("port-" + port.row + "-" + port.rack + "-" + port.rack_port);
     var content = "";
     if (port.short_name !== "-") {
@@ -124,7 +150,7 @@
         portElement.setAttribute('onclick', 'showUserInfo(' + port.user_id + ')');
       } else {
         portElement.style.backgroundColor = "green";
-        portElement.setAttribute('onclick', 'openCreateUserForm(' + port.row + ', ' + port.rack + ', ' + port.rack_port + ',' + port.server_room +')');
+        portElement.setAttribute('onclick', 'openCreateUserForm(' + port.row + ', ' + port.rack + ', ' + port.rack_port + ', ' + port.server_room + ')');
       }
     } else {
       content = "-";
@@ -137,29 +163,6 @@
     var win = window.open('create_user?row=' + row + '&rack=' + rack + '&rack_port=' + rack_port + '&server_room=' + server_room, '_blank', 'width=500,height=500');
   }
 
-  // Refresh the page every 60 seconds
-setTimeout(function() {
-    window.location.reload();
-}, 60000);
-
-// Display the countdown timer
-function updateCountdown() {
-    var countdownElement = document.getElementById('countdown');
-    var remainingTime = parseInt(countdownElement.getAttribute('data-remaining-time'), 10) - 1;
-    countdownElement.setAttribute('data-remaining-time', remainingTime);
-    var minutes = Math.floor(remainingTime / 60);
-    var seconds = remainingTime % 60;
-    countdownElement.textContent = minutes + ':' + String(seconds).padStart(2, '0');
-    if (remainingTime > 0) {
-        setTimeout(updateCountdown, 1000);
-    }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    var countdownElement = document.getElementById('countdown');
-    countdownElement.setAttribute('data-remaining-time', 60);
-    updateCountdown();
-});
 
 // Function to open a new window with user information and a delete button
 function showUserInfo(userId) {
@@ -218,8 +221,6 @@ function deleteUser(userId) {
         }
     });
 }
-
-
 </script>
 
 </body>
