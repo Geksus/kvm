@@ -26,6 +26,15 @@ function updateCountdown() {
 
     <title>{% block title %}KVM Table{% endblock %}</title>
     <style>
+          .color-change-animation {
+            animation-name: color-change;
+            animation-duration: 1s;
+        }
+
+            @keyframes color-change {
+            from {background-color: green;}
+            to {background-color: yellow;}
+        }
           .log-entry {
             background-color: #f2f2f2;
             border-radius: 10px;
@@ -99,6 +108,7 @@ function updateCountdown() {
     <h3><a class="dynamic-buttons" href="http://127.0.0.1:8000/">Server room 1</a></h3>
     <h3><a class="dynamic-buttons" href="http://127.0.0.1:8000/server_room/2/">Server room 2</a></h3>
     <div id="countdown" style="position: fixed; top: 10px; right: 10px; font-size: 20px;"></div>
+    <button id="toggle-animation">Amaze me!</button>
 {#    <form method="get">#}
 {#        {{ filter.form.as_p }}#}
 {#        <button type="submit">Filter</button>#}
@@ -221,6 +231,36 @@ function deleteUser(userId) {
         }
     });
 }
+
+    var isAnimationOn = false; // default is off
+setInterval(function() {
+  if (isAnimationOn) {
+    var cells = document.querySelectorAll('#port-table td');
+    cells.forEach(function(cell) {
+      if (cell.style.backgroundColor !== 'red') {
+        var colors = ['green', 'blue', 'orange', 'purple'];
+        var randomColor = colors[Math.floor(Math.random() * colors.length)];
+        cell.classList.add('color-change-animation');
+        cell.style.backgroundColor = randomColor;
+        setTimeout(function() {
+          cell.classList.remove('color-change-animation');
+        }, 1000);
+      }
+    });
+  }
+}, 1000);
+
+
+var toggleButton = document.getElementById('toggle-animation');
+toggleButton.addEventListener('click', function() {
+  isAnimationOn = !isAnimationOn;
+  if (isAnimationOn) {
+    toggleButton.textContent = 'Turn off animation';
+  } else {
+    toggleButton.textContent = 'Turn on animation';
+  }
+});
+
 </script>
 
 </body>
