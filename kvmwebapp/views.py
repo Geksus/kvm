@@ -46,7 +46,7 @@ def create_port_list(filtered_cross_list, server_room_number):
                     else:
                         port_info["short_name"] = "-"
                         port_info["username"] = "-"
-                if port_info['server_room'] == server_room_number:
+                if port_info["server_room"] == server_room_number:
                     port_list.append(port_info)
     print(port_list)
     return port_list
@@ -79,6 +79,7 @@ def create_port_list(filtered_cross_list, server_room_number):
 #         return context
 class IndexView(TemplateView):
     template_name = "base.html"
+
     def get(self, request, *args, **kwargs):
         self.server_room = kwargs.get("server_room", 1)
         return super().get(request, *args, **kwargs)
@@ -121,14 +122,20 @@ class IndexView(TemplateView):
         server_rooms = ServerRoom.objects.all()
 
         try:
-            server_room = int(context['server_room'])  # Get the server_room from the request or use a default value
+            server_room = int(
+                context["server_room"]
+            )  # Get the server_room from the request or use a default value
         except KeyError:
             server_room = 1
 
-        logs = User.objects.filter(cross__server_room_id=server_room).order_by("-start_time")
+        logs = User.objects.filter(cross__server_room_id=server_room).order_by(
+            "-start_time"
+        )
         # Get all Cross objects and order them by row, rack, and rack_port
-        cross_list = Cross.objects.filter(server_room_id=server_room).select_related("kvm_id", "user", "server_room").order_by(
-            "row", "rack", "rack_port", "server_room"
+        cross_list = (
+            Cross.objects.filter(server_room_id=server_room)
+            .select_related("kvm_id", "user", "server_room")
+            .order_by("row", "rack", "rack_port", "server_room")
         )
         num_racks = max(cross_list.values_list("rack", flat=True))
         print(f"num_racks: {num_racks}")
@@ -151,15 +158,17 @@ class IndexView(TemplateView):
             1, max(filtered_cross_list.values_list("rack_port", flat=True)) + 1
         )
         context["logs"] = [
-        {
-            "user": log.username,
-            "start_time": log.start_time.strftime("%d-%m-%Y %H:%M:%S"),
-            "KVM": Cross.objects.get(user=log.id).kvm_id.short_name,
-        }
-        for log in logs
-    ]
+            {
+                "user": log.username,
+                "start_time": log.start_time.strftime("%d-%m-%Y %H:%M:%S"),
+                "KVM": Cross.objects.get(user=log.id).kvm_id.short_name,
+            }
+            for log in logs
+        ]
         context["server_rooms"] = server_rooms
-        context["current_server_room"] = server_room  # Add the current server_room to the context
+        context[
+            "current_server_room"
+        ] = server_room  # Add the current server_room to the context
 
         return context
 

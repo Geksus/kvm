@@ -11,5 +11,5 @@ def add_class(value, css_class):
     Example usage: {{ my_field|add_class:"form-control" }}
     """
     attrs = value.field.widget.attrs
-    attrs['class'] = attrs.get('class', '') + ' ' + css_class
+    attrs["class"] = attrs.get("class", "") + " " + css_class
     return value
