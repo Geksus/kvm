@@ -1,19 +1,15 @@
 from datetime import datetime
 
 from django.contrib.auth import get_user_model
-from django.contrib.auth.hashers import make_password
-from django.core import serializers
 from django.http import JsonResponse
-from django.urls import reverse_lazy
 from django.utils import timezone
-from django.views import generic, View
 from django.views.generic import TemplateView
+from django.shortcuts import render, get_object_or_404
 
-from kvmwebapp.models import Cross, CrossFilter, User, KVM
+from kvmwebapp.models import Cross, CrossFilter, User
 from .forms import UserForm
 
 
-from django.shortcuts import render, get_object_or_404, redirect
 
 
 def create_port_list(filtered_cross_list):
@@ -40,14 +36,14 @@ def create_port_list(filtered_cross_list):
     return port_list
 
 
-class IndexView1(TemplateView):
+class IndexView(TemplateView):
     template_name = "base.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
         # Get all Cross objects and order them by row, rack, and rack_port
-        cross_list = Cross.objects.select_related('kvm_id', 'user').order_by('row', 'rack', 'rack_port').filter(server_room=1)
+        cross_list = Cross.objects.select_related('kvm_id', 'user').order_by('row', 'rack', 'rack_port')
 
         # Create a filter instance
         cross_filter = CrossFilter(self.request.GET, queryset=cross_list)
@@ -64,52 +60,27 @@ class IndexView1(TemplateView):
 
         return context
 
-
-class IndexView2(TemplateView):
-    template_name = "base2.html"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        # Get all Cross objects and order them by row, rack, and rack_port
-        cross_list = Cross.objects.select_related('kvm_id', 'user').order_by('row', 'rack', 'rack_port').filter(server_room=2)
-
-        # Create a filter instance
-        cross_filter = CrossFilter(self.request.GET, queryset=cross_list)
-
-        # Get the filtered queryset
-        filtered_cross_list = cross_filter.qs
-
-        context['port_list'] = create_port_list(filtered_cross_list)
-        context['num_racks'] = range(1, max(filtered_cross_list.values_list('rack', flat=True)) + 1)
-        context['num_rows'] = range(1, max(filtered_cross_list.values_list('row', flat=True)) + 1)
-        context['num_ports'] = range(1, max(filtered_cross_list.values_list('rack_port', flat=True)) + 1)
-        context['logs'] = logging(request=self.request)
-        # context['filter'] = cross_filter
-
-        return context
 
 def create_user(request):
     print("Request POST:", request.POST)  # Debugging line
-    row, rack, rack_port, server_room = getting_data(request)
+    row, rack, rack_port = getting_data(request)
 
     if request.method == 'POST':
         form = UserForm(request.POST)
         print("Form data:", request.POST)  # Debugging line
         if form.is_valid():
             cross = Cross.objects.get(row=int(request.POST['row']), rack=int(request.POST['rack']),
-                                      rack_port=int(request.POST['rack_port']), server_room=int(request.POST['server_room']))
+                                      rack_port=int(request.POST['rack_port']))
             user = form.save(commit=False)
             user.start_time = datetime.now()
             User = get_user_model()
-            password = User.objects.make_random_password(length=10)
-            user.password = make_password(password)
+            user.password = User.objects.make_random_password(length=10)
             user.save()
             if cross is not None:
                 cross.user_id = user.id
                 cross.kvm_port_active = True
                 cross.save()
-            return JsonResponse({'success': True, 'username': user.username, 'password': password})
+            return JsonResponse({'success': True, 'username': user.username, 'password': user.password})
         else:
             print("Form errors:", form.errors)  # Debugging line
             return JsonResponse({'errors': form.errors})
@@ -121,7 +92,6 @@ def create_user(request):
             'rack': rack,
             'rack_port': rack_port,
             'current_time': datetime.now().strftime('%H:%M'),
-            'server_room': server_room,
         }
         return render(request, 'create_user.html', context)
 
@@ -130,10 +100,9 @@ def getting_data(request):
     row = request.GET.get('row', None)
     rack = request.GET.get('rack', None)
     rack_port = request.GET.get('rack_port', None)
-    server_room = request.GET.get('server_room', None)
     print("Request GET:", request.GET)  # Debugging line
 
-    return [row, rack, rack_port, server_room]
+    return [row, rack, rack_port]
 
 
 def create_user_success(request):
@@ -156,6 +125,7 @@ def user_info(request, user_id):
     active_for = f"{hours}h {minutes}m {seconds}s"
     user_data = {
         'username': user.username,
+        'password': user.password,
         'start_time': user.start_time.strftime('%d-%m-%Y %H:%M:%S'),
         'active_for': active_for,
     }
@@ -175,7 +145,3 @@ def delete_user(request, user_id):
 def logging(request):
     logs = User.objects.all().select_related('cross').order_by('-start_time')
     return [{'user': log.username, 'start_time': log.start_time.strftime('%d-%m-%Y %H:%M:%S'), 'KVM': Cross.objects.get(user=log.id).kvm_id.short_name} for log in logs]
-
-
-def redirect_to_index(request):
-    return redirect('/1')
