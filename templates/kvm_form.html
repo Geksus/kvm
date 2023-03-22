@@ -1,0 +1,10 @@
+{% load crispy_forms_filters %}
+{% load crispy_forms_tags %}
+<h1>Create KVM</h1>
+
+<form method="POST">
+    {% csrf_token %}
+    {{ form|crispy }}
+
+    <button type="submit">Create KVM"</button>
+</form>

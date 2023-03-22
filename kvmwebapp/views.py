@@ -2,16 +2,16 @@ from datetime import datetime
 
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse
+from django.urls import reverse_lazy
 from django.utils import timezone
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, CreateView
 from django.shortcuts import render, get_object_or_404
 
-from kvmwebapp.models import Cross, CrossFilter, User, ServerRoom
-from .forms import UserForm
+from kvmwebapp.models import Cross, CrossFilter, User, ServerRoom, KVM
+from .forms import UserForm, CreateServerRoomForm, CreateKVMForm
 
 
 def create_port_list(filtered_cross_list, server_room_number):
-    print(f"Server room {server_room_number}")
     port_list = []
     for row in range(1, 5):
         for rack in range(1, 15):
@@ -48,7 +48,6 @@ def create_port_list(filtered_cross_list, server_room_number):
                         port_info["username"] = "-"
                 if port_info["server_room"] == server_room_number:
                     port_list.append(port_info)
-    print(port_list)
     return port_list
 
 
@@ -84,42 +83,11 @@ class IndexView(TemplateView):
         self.server_room = kwargs.get("server_room", 1)
         return super().get(request, *args, **kwargs)
 
-    # def get_context_data(self, **kwargs):
-    #     context = super().get_context_data(**kwargs)
-    #     print(context)
-    #
-    #     server_rooms = ServerRoom.objects.all()
-    #     # Get all Cross objects and order them by row, rack, and rack_port
-    #     cross_list = Cross.objects.select_related("kvm_id", "user", "server_room").order_by(
-    #         "row", "rack", "rack_port", "server_room"
-    #     )
-    #
-    #     # Create a filter instance
-    #     cross_filter = CrossFilter(self.request.GET, queryset=cross_list)
-    #
-    #     # Get the filtered queryset
-    #     filtered_cross_list = cross_filter.qs
-    #
-    #     context["port_list"] = create_port_list(filtered_cross_list, self.server_room)
-    #     context["num_racks"] = range(
-    #         1, max(filtered_cross_list.values_list("rack", flat=True)) + 1
-    #     )
-    #     context["num_rows"] = range(
-    #         1, max(filtered_cross_list.values_list("row", flat=True)) + 1
-    #     )
-    #     context["num_ports"] = range(
-    #         1, max(filtered_cross_list.values_list("rack_port", flat=True)) + 1
-    #     )
-    #     # context["logs"] = logging(request=self.request)
-    #     context["server_rooms"] = server_rooms
-    #     # context['filter'] = cross_filter
-    #
-    #     return context
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
         server_rooms = ServerRoom.objects.all()
+        context["server_rooms"] = server_rooms
 
         try:
             server_room = int(
@@ -138,16 +106,13 @@ class IndexView(TemplateView):
             .order_by("row", "rack", "rack_port", "server_room")
         )
         num_racks = max(cross_list.values_list("rack", flat=True))
-        print(f"num_racks: {num_racks}")
         num_rows = max(cross_list.values_list("row", flat=True))
-        print(f"num_rows: {num_rows}")
 
         # Create a filter instance
         cross_filter = CrossFilter(self.request.GET, queryset=cross_list)
 
         # Get the filtered queryset
         filtered_cross_list = cross_filter.qs
-        print(len(filtered_cross_list))
 
         context["port_list"] = create_port_list(filtered_cross_list, server_room)
         context["num_racks"] = range(1, num_racks + 1)
@@ -165,7 +130,6 @@ class IndexView(TemplateView):
             }
             for log in logs
         ]
-        context["server_rooms"] = server_rooms
         context[
             "current_server_room"
         ] = server_room  # Add the current server_room to the context
@@ -173,12 +137,11 @@ class IndexView(TemplateView):
         return context
 
 
-def create_user(request):
+def create_user(request, *args, **kwargs):
     row, rack, rack_port, server_room = getting_data(request)
 
     if request.method == "POST":
         form = UserForm(request.POST)
-        print("Form data:", request.POST)  # Debugging line
         if form.is_valid():
             cross = Cross.objects.get(
                 row=int(request.POST["row"]),
@@ -187,7 +150,6 @@ def create_user(request):
                 server_room=int(request.POST["server_room"]),
             )
 
-            print("Cross:", cross)  # Debugging line
             user = form.save(commit=False)
             user.start_time = datetime.now()
             User = get_user_model()
@@ -221,7 +183,6 @@ def getting_data(request):
     rack = request.GET.get("rack", None)
     rack_port = request.GET.get("rack_port", None)
     server_room = request.GET.get("server_room", None)
-    print("Request GET:", request.GET)  # Debugging line
 
     return [row, rack, rack_port, server_room]
 
@@ -273,3 +234,38 @@ def logging(request):
         }
         for log in logs
     ]
+
+
+class CreateServerRoom(CreateView):
+    model = ServerRoom
+    form_class = CreateServerRoomForm
+    template_name = "serverroom_form.html"
+    success_url = reverse_lazy("kvmwebapp:index")
+
+    def form_valid(self, form):
+        # Call the parent class's form_valid() method to save the form data
+        response = super().form_valid(form)
+
+        # Now that the form data is saved, populate the room
+        for row in range(1, self.object.num_rows + 1):
+            for rack in range(1, self.object.num_racks + 1):
+                for rack_port in range(1, self.object.ports_per_rack + 1):
+                    Cross.objects.create(
+                        row=row,
+                        rack=rack,
+                        rack_port=rack_port,
+                        server_room=self.object,
+                        kvm_port_active=False,
+                    )
+
+        return response
+
+
+
+
+class CreateKVM(CreateView):
+    model = KVM
+    form = CreateKVMForm
+    fields = ["fqdn", "short_name", "ip", "number_of_ports"]
+    template_name = "kvm_form.html"
+    success_url = reverse_lazy("kvmwebapp:index")

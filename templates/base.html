@@ -1,5 +1,8 @@
 <!-- index.html -->
 <!DOCTYPE html>
+{% load crispy_forms_tags %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static "style.css" %}">
 <html>
 <head>
     <script>
@@ -25,96 +28,28 @@ function updateCountdown() {
 </script>
 
     <title>{% block title %}KVM Table{% endblock %}</title>
-    <style>
-          .color-change-animation {
-            animation-name: color-change;
-            animation-duration: 1s;
-        }
 
-            @keyframes color-change {
-            from {background-color: green;}
-            to {background-color: yellow;}
-        }
-          .log-entry {
-            background-color: #f2f2f2;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 10px;
-        }
-
-        .log-entry p {
-            margin: 0;
-            padding: 0;
-            line-height: 1.5;
-        }
-
-        .log-entry p:not(:last-child) {
-            margin-bottom: 5px;
-        }
-        table {
-            border-collapse: collapse;
-        }
-
-        th, td {
-            border: 1px solid black;
-            padding: 5px;
-        }
-
-        th {
-            text-align: center;
-            font-size: 14px;
-        }
-
-        td {
-            text-align: center;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        .create-user-form {
-            position: fixed;
-            top: 20%;
-            left: 20%;
-            width: 60%;
-            background-color: white;
-            padding: 20px;
-            border: 1px solid black;
-        }
-
-        .create-user-form label {
-            display: inline-block;
-            width: 100px;
-            text-align: right;
-            margin-right: 10px;
-            font-size: 14px;
-        }
-
-        .create-user-form input[type="text"], .create-user-form input[type="submit"] {
-            font-size: 14px;
-            padding: 5px;
-        }
-
-        .create-user-form .message {
-            margin-top: 10px;
-            font-size: 14px;
-        }
-    </style>
 
 </head>
 <body>
     <div id="countdown" style="position: fixed; top: 10px; right: 10px; font-size: 20px;"></div>
 
     <h1>KVM Port Status</h1>
-    <h3><a class="dynamic-buttons" href="http://127.0.0.1:8000/">Server room 1</a></h3>
-    <h3><a class="dynamic-buttons" href="http://127.0.0.1:8000/server_room/2/">Server room 2</a></h3>
+        {% for room in server_rooms %}
+            <div class="room-entry">
+                <h4><button class="btn btn-primary" onclick="location.href='/server_room/{{ room.id }}';">{{ room.name }}</button></h4>
+            </div>
+        {% endfor %}
+
     <div id="countdown" style="position: fixed; top: 10px; right: 10px; font-size: 20px;"></div>
-    <button id="toggle-animation">Amaze me!</button>
+    <button class="btn btn-primary" onclick="window.open('/create_sroom/', '_blank', 'width=500,height=500');">Create Server Room</button> <button onclick="window.open('/create_kvm/', '_blank', 'width=500,height=500');">Create KVM</button> <button id="toggle-animation">Amaze me!</button>
 {#    <form method="get">#}
 {#        {{ filter.form.as_p }}#}
 {#        <button type="submit">Filter</button>#}
 {#    </form>#}
     <br>
-    <table id="port-table">
+    <div style="overflow: auto">
+    <table id="port-table" class="port-table">
         <thead>
             <tr>
                 <th>Row</th>
@@ -135,12 +70,15 @@ function updateCountdown() {
             {% endfor %}
         </tbody>
     </table>
+    </div>
     <br>
+    <div class="log-entry">
     {% for log in logs %}
         <div class="log-entry">
             <p>User: {{ log.user }} | Start time: {{ log.start_time }} | KVM: {{ log.KVM }}</p>
         </div>
     {% endfor %}
+    </div>
 
 <script>
   var portList = {{ port_list|safe }};
@@ -152,9 +90,9 @@ function updateCountdown() {
     var content = "";
     if (port.short_name !== "-") {
       content += "User: " + port.username + "<br/>";
-      content += "Start Time: " + port.start_time + "<br/>";
+      {#content += "Start Time: " + port.start_time + "<br/>";#}
       content += "KVM: " + port.short_name + "/" + port.kvm_port + "<br/>";
-      content += "Server room: " + port.server_room;
+      {#content += "Server room: " + port.server_room;#}
       if (port.username !== '-') {
         portElement.style.backgroundColor = "red";
         portElement.setAttribute('onclick', 'showUserInfo(' + port.user_id + ')');

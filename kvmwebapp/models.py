@@ -13,10 +13,6 @@ class KVM(models.Model):
 
     def clean(self):
         # Validate that fqdn and short_name are alphanumeric
-        if not self.fqdn.isalnum():
-            raise ValidationError(
-                _("fqdn should only contain alphanumeric characters.")
-            )
         if not self.short_name.isalnum():
             raise ValidationError(
                 _("short_name should only contain alphanumeric characters.")
@@ -100,6 +96,7 @@ class ServerRoom(models.Model):
     description = models.TextField(blank=True, null=True)
     num_rows = models.PositiveSmallIntegerField(default=4)
     num_racks = models.PositiveSmallIntegerField(default=14)
+    ports_per_rack = models.PositiveSmallIntegerField(default=2)
 
     def __str__(self):
         return self.name
