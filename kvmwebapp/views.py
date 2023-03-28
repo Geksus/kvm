@@ -155,6 +155,7 @@ def create_user(request, *args, **kwargs):
             User = get_user_model()
             user.password = User.objects.make_random_password(length=10)
             user.save()
+            user_info(request, user.id)
             if cross is not None:
                 cross.user_id = user.id
                 cross.kvm_port_active = True
@@ -187,17 +188,9 @@ def getting_data(request):
     return [row, rack, rack_port, server_room]
 
 
-def create_user_success(request):
-    password = request.GET.get("password", "")
-    return render(request, "create_user_success.html", {"password": password})
 
-
-def user_info(request, *args, **kwargs):
-    print(kwargs)
-    try:
-        user = get_object_or_404(User, pk=kwargs['user_id'])
-    except Exception:
-        user = User.objects.filter(username='username')
+def user_info(request, user_id):
+    user = get_object_or_404(User, pk=user_id)
     duration = timezone.now() - user.start_time
 
     # Calculate the total number of seconds
