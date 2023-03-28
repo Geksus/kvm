@@ -32,17 +32,23 @@ function updateCountdown() {
 
 </head>
 <body>
+{% if user.is_authenticated %}
+    <button onclick="location.href='/logout/'">Logout</button>
+{% else %}
+    <button onclick="location.href='/accounts/login/'">Login</button>
+{% endif %}
+
     <div id="countdown" style="position: fixed; top: 10px; right: 10px; font-size: 20px;"></div>
 
     <h1>KVM Port Status</h1>
         {% for room in server_rooms %}
-            <div class="room-entry">
+            <div>
                 <h4><button class="btn btn-primary" onclick="location.href='/server_room/{{ room.id }}';">{{ room.name }}</button></h4>
             </div>
         {% endfor %}
 
     <div id="countdown" style="position: fixed; top: 10px; right: 10px; font-size: 20px;"></div>
-    <button class="btn btn-primary" onclick="window.open('/sroom_list/', '_blank');">List of Server Rooms</button> <button class="btn btn-primary" onclick="window.open('/kvm_list/', '_blank');">List of KVM's</button> <button id="toggle-animation">Amaze me!</button>
+    <button class="btn btn-primary" onclick="window.location.href='/sroom_list/';">List of Server Rooms</button> <button class="btn btn-primary" onclick="window.location.href='/kvm_list/';">List of KVM's</button> <button id="toggle-animation">Amaze me!</button>
 {#    <form method="get">#}
 {#        {{ filter.form.as_p }}#}
 {#        <button type="submit">Filter</button>#}

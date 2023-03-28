@@ -1,11 +1,15 @@
 from datetime import datetime
 
-from django.contrib.auth import get_user_model
+from django.contrib import messages
+from django.contrib.auth import get_user_model, authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import TemplateView, CreateView, ListView, DeleteView
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 
 from kvmwebapp.models import Cross, CrossFilter, User, ServerRoom, KVM
 from .forms import UserForm, CreateServerRoomForm, CreateKVMForm
@@ -236,8 +240,7 @@ def logging(request):
     return render(request, 'logs.html', context)
 
 
-
-class CreateServerRoom(CreateView):
+class CreateServerRoom(LoginRequiredMixin, CreateView):
     model = ServerRoom
     form_class = CreateServerRoomForm
     template_name = "serverroom_form.html"
@@ -262,7 +265,7 @@ class CreateServerRoom(CreateView):
         return response
 
 
-class CreateKVM(CreateView):
+class CreateKVM(LoginRequiredMixin, CreateView):
     model = KVM
     form = CreateKVMForm
     fields = ["fqdn", "short_name", "ip", "number_of_ports"]
@@ -276,11 +279,11 @@ class ServerRoomListView(ListView):
     context_object_name = "server_rooms"
 
 
+@login_required
 def delete_server_room(*args, **kwargs):
     server_room = get_object_or_404(ServerRoom, pk=kwargs['room_id'])
     server_room.delete()
-    success_url = reverse_lazy('kvmwebapp:index')
-    return JsonResponse({"success": True})
+    return redirect('kvmwebapp:index')
 
 
 class KVMListView(ListView):
@@ -288,9 +291,48 @@ class KVMListView(ListView):
     template_name = "kvm_list.html"
     context_object_name = "kvm_list"
 
-
+@login_required
 def delete_kvm(*args, **kwargs):
     kvm = get_object_or_404(KVM, pk=kwargs['kvm_id'])
     kvm.delete()
-    success_url = reverse_lazy('kvmwebapp:index')
-    return JsonResponse({"success": True})
+    return redirect('kvmwebapp:index')
+
+
+def login_view(request):
+    print("Login view called")  # Debug print
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            print("Form is valid")  # Debug print
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                login(request, user)
+                return redirect('kvmwebapp:index')
+            else:
+                messages.error(request, 'Invalid username or password.')
+                print("Form errors:", form.errors)
+        else:
+            messages.error(request, 'Invalid username or password.')
+            print("Form errors:", form.errors)
+    form = AuthenticationForm()
+    return render(request, 'login.html', {'form': form})
+
+
+def register(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('home')  # Replace 'home' with the name of the view you want to redirect to after registration
+    else:
+        form = UserCreationForm()
+    return render(request, 'register.html', {'form': form})
+
+
+def logout_view(request):
+    logout(request)
+    return redirect('kvmwebapp:index')  # Replace 'login' with the name of the view you want to redirect to after logout
+
