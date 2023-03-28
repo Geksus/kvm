@@ -1,0 +1,12 @@
+{% load static %}
+{% block logs %}
+    <div class="log-entry">
+    {% for log in logs %}
+        <div class="log-entry">
+            {% autoescape off %}
+            <p>User: {{ log.user }} | Start time: {{ log.start_time }} | KVM: {{ log.KVM }}</p>
+            {% endautoescape %}
+        </div>
+    {% endfor %}
+    </div>
+{% endblock %}

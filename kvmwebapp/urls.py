@@ -7,6 +7,10 @@ from kvmwebapp.views import (
     delete_user,
     CreateServerRoom,
     CreateKVM,
+    ServerRoomListView,
+    delete_server_room,
+    KVMListView,
+    delete_kvm,
 )
 
 app_name = "kvmwebapp"
@@ -20,4 +24,8 @@ urlpatterns = [
     path("delete_user/<int:user_id>/", delete_user, name="delete_user"),
     path("create_sroom/", CreateServerRoom.as_view(), name="create_server_room"),
     path("create_kvm/", CreateKVM.as_view(), name="create_kvm"),
+    path("sroom_list/", ServerRoomListView.as_view(), name="sroom_list"),
+    path("delete_sroom/<int:room_id>/", delete_server_room, name="delete_sroom"),
+    path("delete_kvm/<int:kvm_id>/", delete_kvm, name="delete_kvm"),
+    path("kvm_list/", KVMListView.as_view(), name="kvm_list"),
 ]

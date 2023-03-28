@@ -1,0 +1,45 @@
+Install MariaDB
+
+On Ubuntu: sudo apt-get install mariadb-server
+On CentOS: sudo yum install mariadb-server
+
+Create a database and user for the application
+
+Log in to MariaDB:
+sudo -i
+mariadb
+Create a database:
+CREATE DATABASE kvm_db;
+Create a user:
+CREATE USER 'kvmuser'@'localhost' IDENTIFIED BY 'password';
+Grant privileges to the user:
+GRANT ALL PRIVILEGES ON kvm_db.* TO 'kvmuser'@'localhost';
+Exit MariaDB:
+exit
+Clone the repository:
+git clone https://github.com/Geksus/kvm.git
+
+Install dependencies:
+cd kvm
+pip install -r requirements.txt
+
+Set up the application:
+Edit kvmwebapp/settings.py to set your database settings:
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'kvm_db',
+        'USER': 'kvmuser',
+        'PASSWORD': 'password',
+        'HOST': 'localhost',
+        'PORT': '3306',
+    }
+}
+Create the database tables: python manage.py migrate
+Create a superuser account: python manage.py createsuperuser
+Collect static files: python manage.py collectstatic
+Run the application: python manage.py runserver
+
+Access the application by going to http://localhost:8000 in a web browser.
+
+Note: In production, you should set DEBUG=False in kvmwebapp/settings.py and serve the application with a proper web server like Apache or Nginx. Additionally, you should set up HTTPS for secure communication.

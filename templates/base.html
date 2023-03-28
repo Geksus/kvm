@@ -42,7 +42,7 @@ function updateCountdown() {
         {% endfor %}
 
     <div id="countdown" style="position: fixed; top: 10px; right: 10px; font-size: 20px;"></div>
-    <button class="btn btn-primary" onclick="window.open('/create_sroom/', '_blank', 'width=500,height=500');">Create Server Room</button> <button onclick="window.open('/create_kvm/', '_blank', 'width=500,height=500');">Create KVM</button> <button id="toggle-animation">Amaze me!</button>
+    <button class="btn btn-primary" onclick="window.open('/sroom_list/', '_blank');">List of Server Rooms</button> <button class="btn btn-primary" onclick="window.open('/kvm_list/', '_blank');">List of KVM's</button> <button id="toggle-animation">Amaze me!</button>
 {#    <form method="get">#}
 {#        {{ filter.form.as_p }}#}
 {#        <button type="submit">Filter</button>#}
@@ -72,13 +72,9 @@ function updateCountdown() {
     </table>
     </div>
     <br>
-    <div class="log-entry">
-    {% for log in logs %}
-        <div class="log-entry">
-            <p>User: {{ log.user }} | Start time: {{ log.start_time }} | KVM: {{ log.KVM }}</p>
-        </div>
-    {% endfor %}
-    </div>
+{% block logs %}
+    {% include 'logs.html' %}
+{% endblock %}
 
 <script>
   var portList = {{ port_list|safe }};

@@ -1,0 +1,19 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static "style.css" %}">
+<h1>List of Server Rooms</h1>
+{% for room in server_rooms %}
+    <p class="log-entry">{{ room.name }}: Rows {{ room.num_rows }} | Racks: {{ room.num_racks }} | Ports per rack: {{ room.ports_per_rack }}</p>
+    <button class="btn-danger" onclick="confirmDeletion('/delete_sroom/{{ room.id }}')">Delete room</button>
+{% endfor %}
+<br>
+<br>
+<button class="btn btn-primary" onclick="location.href='/create_sroom/';">Create Server Room</button>
+
+<script>
+    function confirmDeletion(url) {
+        if (confirm("Are you sure you want to delete this server room?")) {
+            window.open(url);
+            window.close();
+        }
+    }
+</script>

@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from django.urls import reverse_lazy
 from django.utils import timezone
-from django.views.generic import TemplateView, CreateView
+from django.views.generic import TemplateView, CreateView, ListView, DeleteView
 from django.shortcuts import render, get_object_or_404
 
 from kvmwebapp.models import Cross, CrossFilter, User, ServerRoom, KVM
@@ -192,8 +192,12 @@ def create_user_success(request):
     return render(request, "create_user_success.html", {"password": password})
 
 
-def user_info(request, user_id):
-    user = get_object_or_404(User, pk=user_id)
+def user_info(request, *args, **kwargs):
+    print(kwargs)
+    try:
+        user = get_object_or_404(User, pk=kwargs['user_id'])
+    except Exception:
+        user = User.objects.filter(username='username')
     duration = timezone.now() - user.start_time
 
     # Calculate the total number of seconds
@@ -226,14 +230,18 @@ def delete_user(request, user_id):
 
 def logging(request):
     logs = User.objects.all().order_by("-start_time")
-    return [
+    logs_list = [
         {
             "user": log.username,
             "start_time": log.start_time.strftime("%d-%m-%Y %H:%M:%S"),
             "KVM": Cross.objects.get(user=log.id).kvm_id.short_name,
+            'id': log.id,
         }
         for log in logs
     ]
+    context = {'logs': logs_list}
+    return render(request, 'logs.html', context)
+
 
 
 class CreateServerRoom(CreateView):
@@ -261,11 +269,35 @@ class CreateServerRoom(CreateView):
         return response
 
 
-
-
 class CreateKVM(CreateView):
     model = KVM
     form = CreateKVMForm
     fields = ["fqdn", "short_name", "ip", "number_of_ports"]
     template_name = "kvm_form.html"
     success_url = reverse_lazy("kvmwebapp:index")
+
+
+class ServerRoomListView(ListView):
+    model = ServerRoom
+    template_name = "serverroom_list.html"
+    context_object_name = "server_rooms"
+
+
+def delete_server_room(*args, **kwargs):
+    server_room = get_object_or_404(ServerRoom, pk=kwargs['room_id'])
+    server_room.delete()
+    success_url = reverse_lazy('kvmwebapp:index')
+    return JsonResponse({"success": True})
+
+
+class KVMListView(ListView):
+    model = KVM
+    template_name = "kvm_list.html"
+    context_object_name = "kvm_list"
+
+
+def delete_kvm(*args, **kwargs):
+    kvm = get_object_or_404(KVM, pk=kwargs['kvm_id'])
+    kvm.delete()
+    success_url = reverse_lazy('kvmwebapp:index')
+    return JsonResponse({"success": True})

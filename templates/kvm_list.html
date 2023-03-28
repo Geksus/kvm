@@ -1,0 +1,18 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static "style.css" %}">
+<h1>List of KVM</h1>
+{% for kvm in kvm_list %}
+    <p class="log-entry">{{ kvm.short_name }}| FQDN: {{ kvm.fqdn }} | IP: {{ kvm.ip }} | Ports: {{ kvm.number_of_ports }}</p>
+    <button class="btn-danger" onclick="confirmDeletion('/delete_kvm/{{ kvm.id }}')">Delete kvm</button>
+{% endfor %}
+<br>
+<br>
+<button class="btn btn-primary" onclick="location.href='/create_kvm/';">Create KVM</button>
+
+<script>
+    function confirmDeletion(url) {
+        if (confirm("Are you sure you want to delete this KVM?")) {
+            window.open(url);
+        }
+    }
+</script>
