@@ -15,11 +15,17 @@ from django.views.generic import (
     ListView,
     DeleteView,
     DetailView,
+    UpdateView,
 )
 from django.shortcuts import render, get_object_or_404, redirect
 
 from kvmwebapp.models import Cross, CrossFilter, User, ServerRoom, KVM
-from .forms import KVMAccessForm, CreateServerRoomForm, CreateKVMForm, DjangoUserCreationForm
+from .forms import (
+    KVMAccessForm,
+    CreateServerRoomForm,
+    CreateKVMForm,
+    DjangoUserCreationForm,
+)
 
 
 def create_port_list(filtered_cross_list, server_room_number):
@@ -90,7 +96,7 @@ def create_port_list(filtered_cross_list, server_room_number):
 #         return context
 
 
-class IndexView(TemplateView):
+class IndexView(LoginRequiredMixin, TemplateView):
     template_name = "base.html"
 
     def get(self, request, *args, **kwargs):
@@ -177,7 +183,9 @@ def give_kvm_access(request, *args, **kwargs):
             user.save()
             if cross is not None:
                 cross.user_id = user.id
-                cross.kvm_id = ServerRoom.objects.get(id=int(request.POST["server_room"])).kvm_id
+                cross.kvm_id = ServerRoom.objects.get(
+                    id=int(request.POST["server_room"])
+                ).kvm_id
                 cross.kvm_port_active = True
                 cross.save()
             return JsonResponse(
@@ -232,8 +240,11 @@ def user_info(request, user_id):
 
 def access_info(request, user_id):
     user = get_object_or_404(User, pk=user_id)
+    print(user.__dict__)
     duration = timezone.now() - user.start_time
-
+    first_name = DjangoUser.objects.filter(username=user.username).first().first_name
+    last_name = DjangoUser.objects.filter(username=user.username).first().last_name
+    email = DjangoUser.objects.filter(username=user.username).first().email
     # Calculate the total number of seconds
     total_seconds = int(duration.total_seconds())
 
@@ -249,9 +260,9 @@ def access_info(request, user_id):
         "start_time": user.start_time.strftime("%d-%m-%Y %H:%M:%S"),
         "active_for": active_for,
         "issued_by": user.issued_by.username,
-        "first_name": user.first_name,
-        "last_name": user.last_name,
-        "email": user.email,
+        "first_name": first_name,
+        "last_name": last_name,
+        "email": email,
     }
     return JsonResponse(user_data)
 
@@ -264,6 +275,14 @@ class UserDetailView(DetailView):
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def delete_user(request, user_id):
+    user = get_object_or_404(DjangoUser, pk=user_id)
+    user.delete()
+    return JsonResponse({"success": True})
+
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def remove_access(request, user_id):
     user = get_object_or_404(User, pk=user_id)
     cross = Cross.objects.get(user=user)
     cross.user = None
@@ -317,6 +336,21 @@ class CreateServerRoom(UserPassesTestMixin, CreateView):
         kvm.server_room_id = self.object
         kvm.save()
         return response
+
+
+class UpdateServerRoom(UserPassesTestMixin, UpdateView):
+    model = ServerRoom
+    form_class = CreateServerRoomForm
+    template_name = "serverroom_form.html"
+    success_url = reverse_lazy("kvmwebapp:index")
+
+    def test_func(self):
+        return self.request.user.is_superuser
+
+    def remove_crosses(self):
+        crosses = Cross.objects.filter(server_room=self.object)
+        print(len(crosses))
+        crosses.delete()
 
 
 class CreateKVM(UserPassesTestMixin, CreateView):
@@ -389,7 +423,7 @@ def register(request):
             user = form.save(commit=False)
             user.set_password(form.cleaned_data["password"])
             user.save()
-            login(request, user)
+            # login(request, user)
             return redirect(
                 "kvmwebapp:index"
             )  # Replace 'home' with the name of the view you want to redirect to after registration

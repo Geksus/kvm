@@ -161,7 +161,7 @@ const csrftoken = getCookie('csrftoken');
 // Function to delete a user and refresh the index page
 function deleteUser(userId) {
     // Send a request to your server to delete the user
-    fetch('/delete_user/' + userId, {
+    fetch('/remove_access/' + userId, {
         method: 'DELETE',
         headers: {
             'Content-Type': 'application/json',

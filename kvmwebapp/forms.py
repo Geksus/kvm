@@ -12,7 +12,11 @@ class KVMAccessForm(forms.ModelForm):
         fields = ("username", "email")
 
     def clean_username(self):
+        list_of_users = [u.username for u in DjangoUser.objects.all()]
+        print(list_of_users)
         data = self.cleaned_data["username"]
+        if data not in list_of_users:
+            raise forms.ValidationError("User does not exist.")
         if not data.isalnum():
             raise forms.ValidationError(
                 "username should only contain alphanumeric characters."
@@ -24,11 +28,17 @@ class KVMAccessForm(forms.ModelForm):
         return data
 
 
-
 class DjangoUserCreationForm(forms.ModelForm):
     class Meta:
         model = DjangoUser
-        fields = ("username", "first_name", "last_name", "email", "password", "is_superuser")
+        fields = (
+            "username",
+            "first_name",
+            "last_name",
+            "email",
+            "password",
+            "is_superuser",
+        )
 
     def clean_username(self):
         data = self.cleaned_data["username"]
@@ -42,10 +52,18 @@ class DjangoUserCreationForm(forms.ModelForm):
             )
         return data
 
+
 class CreateServerRoomForm(forms.ModelForm):
     class Meta:
         model = ServerRoom
-        fields = ("name", "description", "num_rows", "num_racks", "ports_per_rack", "kvm_id")
+        fields = (
+            "name",
+            "description",
+            "num_rows",
+            "num_racks",
+            "ports_per_rack",
+            "kvm_id",
+        )
 
     def clean(self):
         data = self.cleaned_data
