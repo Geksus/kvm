@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <form method="POST" action="modify_room">
+    {% csrf_token %}
+        <table id="port-table" class="port-table">
+        <thead>
+            <tr>
+                <th></th>
+                {% for rack in num_racks %}
+                    <th colspan="2">Rack {{ rack }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in num_rows %}
+                <tr>
+                    <td>{{ row }}</td>
+                    {% for rack in num_racks %}
+                        <td id="port-{{ row }}-{{ rack }}-1"></td>
+                        <td id="port-{{ row }}-{{ rack }}-2"></td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </form>
+
+<script>
+  var portList = {{ port_list|safe }};
+  for (var i = 0; i < portList.length; i++) {
+      var port = portList[i];
+      console.log(port)
+      var portElement = document.getElementById("port-" + port.row + "-" + port.rack + "-" + port.rack_port);
+      var content = "";
+      if (port.rack_port_active === 'True') {
+          portElement.style.backgroundColor = "green";
+          portElement.setAttribute('onclick', 'changeStatus(' + port.row + ',' + port.rack + ',' + port.rack_port + ',' + port.server_room + ')');
+      }
+  }
+
+    function changeStatus(row, rack, rack_port, server_room) {
+    var win = window.location.href = "modify_room?row=" + row + "&rack=" + rack + "&rack_port=" + rack_port + "&server_room=" + server_room;
+}
+</script>
+</body>
+</html>

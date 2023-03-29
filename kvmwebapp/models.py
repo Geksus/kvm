@@ -38,6 +38,7 @@ class Cross(models.Model):
     row = models.PositiveSmallIntegerField(help_text="row")
     rack = models.PositiveSmallIntegerField(help_text="rack")
     rack_port = models.PositiveSmallIntegerField(help_text="rack_port")
+    rack_port_active = models.BooleanField(default=True)
     kvm_id = models.ForeignKey(
         "KVM",
         on_delete=models.SET_NULL,

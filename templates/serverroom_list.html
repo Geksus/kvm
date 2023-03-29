@@ -4,6 +4,7 @@
 {% for room in server_rooms %}
     <p class="log-entry">{{ room.name }}: Rows {{ room.num_rows }} | Racks: {{ room.num_racks }} | Ports per rack: {{ room.ports_per_rack }}</p>
 {#    <button class="btn-danger" onclick="confirmUpdate('/update_sroom/{{ room.id }}')">Update room</button>#}
+    <button class="btn-danger" onclick="confirmUpdate('/modify_room/{{ room.id }}')">Modify room</button>
     <button class="btn-danger" onclick="confirmDeletion('/delete_sroom/{{ room.id }}')">Delete room</button>
 {% endfor %}
 <br>
@@ -19,7 +20,7 @@
     }
 
     function confirmUpdate(url) {
-        if (confirm("Are you sure you want to update this server room?")) {
+        if (confirm("Are you sure you want to modify this server room?")) {
             window.location.href=url;
 
         }

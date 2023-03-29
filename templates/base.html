@@ -87,34 +87,33 @@ function updateCountdown() {
 <script>
   var portList = {{ port_list|safe }};
   for (var i = 0; i < portList.length; i++) {
-    var port = portList[i];
-    console.log(port)
-    var portElement = document.getElementById("port-" + port.row + "-" + port.rack + "-" + port.rack_port);
-    var content = "";
-    if (port.short_name !== "-") {
-      content += port.username + "<br/>";
-      {#content += "Start Time: " + port.start_time + "<br/>";#}
-      content += "KVM: " + port.short_name + "/" + port.kvm_port + "<br/>";
-      {#content += "Server room: " + port.server_room;#}
-      if (port.username !== '-') {
-        portElement.style.backgroundColor = "red";
-        portElement.setAttribute('onclick', 'showUserInfo(' + port.user_id + ')');
-      } else {
-        portElement.style.backgroundColor = "green";
-        portElement.setAttribute('onclick', 'openCreateUserForm(' + port.row + ', ' + port.rack + ', ' + port.rack_port + ', ' + port.server_room + ')');
+      var port = portList[i];
+      console.log(port)
+      var portElement = document.getElementById("port-" + port.row + "-" + port.rack + "-" + port.rack_port);
+      var content = "";
+      if (port.rack_port_active === 'True') {
+          if (port.short_name !== "-") {
+              content += port.username + "<br/>";
+              {#content += "Start Time: " + port.start_time + "<br/>";#}
+              content += "KVM: " + port.short_name + "/" + port.kvm_port + "<br/>";
+              if (port.username !== '-') {
+                  portElement.style.backgroundColor = "red";
+                  portElement.setAttribute('onclick', 'showUserInfo(' + port.user_id + ')');
+              } else {
+                  portElement.style.backgroundColor = "green";
+                  portElement.setAttribute('onclick', 'openCreateUserForm(' + port.row + ', ' + port.rack + ', ' + port.rack_port + ', ' + port.server_room + ')');
+              }
+          } else {
+              content = "-";
+              portElement.style.backgroundColor = "green";
+          }
+          portElement.innerHTML = content;
       }
-    } else {
-      content = "-";
-      portElement.style.backgroundColor = "green";
-    }
-    portElement.innerHTML = content;
   }
 
     function openCreateUserForm(row, rack, rack_port, server_room) {
     var win = window.location.href = "create_user?row=" + row + "&rack=" + rack + "&rack_port=" + rack_port + "&server_room=" + server_room;
 }
-
-
 
 // Function to open a new window with user information and a delete button
 function showUserInfo(userId) {

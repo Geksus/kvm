@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.models import User as DjangoUser
 from django.contrib.auth import get_user_model, authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.http import JsonResponse
 from django.urls import reverse_lazy
@@ -13,8 +13,6 @@ from django.views.generic import (
     TemplateView,
     CreateView,
     ListView,
-    DeleteView,
-    DetailView,
     UpdateView,
 )
 from django.shortcuts import render, get_object_or_404, redirect
@@ -37,6 +35,7 @@ def create_port_list(filtered_cross_list, server_room_number):
                     "row": row,
                     "rack": rack,
                     "rack_port": rack_port,
+                    "rack_port_active": str(Cross.objects.filter(row=row, rack=rack, rack_port=rack_port, server_room=server_room_number).first().rack_port_active),
                     "kvm_port": "-",
                     "short_name": "-",
                     "username": "-",
@@ -67,33 +66,6 @@ def create_port_list(filtered_cross_list, server_room_number):
                 if port_info["server_room"] == server_room_number:
                     port_list.append(port_info)
     return port_list
-
-
-# class IndexView(TemplateView):
-#     template_name = "base.html"
-#
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#
-#         server_rooms = ServerRoom.objects.all()
-#         # Get all Cross objects and order them by row, rack, and rack_port
-#         cross_list = Cross.objects.select_related('kvm_id', 'user').order_by('row', 'rack', 'rack_port')
-#
-#         # Create a filter instance
-#         cross_filter = CrossFilter(self.request.GET, queryset=cross_list)
-#
-#         # Get the filtered queryset
-#         filtered_cross_list = cross_filter.qs
-#
-#         context['port_list'] = create_port_list(filtered_cross_list)
-#         context['num_racks'] = range(1, max(filtered_cross_list.values_list('rack', flat=True)) + 1)
-#         context['num_rows'] = range(1, max(filtered_cross_list.values_list('row', flat=True)) + 1)
-#         context['num_ports'] = range(1, max(filtered_cross_list.values_list('rack_port', flat=True)) + 1)
-#         context['logs'] = logging(request=self.request)
-#         context['server_rooms'] = server_rooms
-#         # context['filter'] = cross_filter
-#
-#         return context
 
 
 class IndexView(LoginRequiredMixin, TemplateView):
@@ -265,11 +237,6 @@ def access_info(request, user_id):
         "email": email,
     }
     return JsonResponse(user_data)
-
-
-class UserDetailView(DetailView):
-    model = User
-    template_name = "user_detail.html"
 
 
 @login_required
@@ -444,3 +411,27 @@ class UserListView(ListView):
     ordering = ["username"]
     template_name = "user_list.html"
     context_object_name = "user_list"
+
+
+def modify_server_room(request, room_id):
+    if request.method == "POST":
+        row = request.POST.get("row")
+        rack = request.POST.get("rack")
+        rack_port = request.POST.get("rack_port")
+        cross = Cross.objects.get(
+            row=row,
+            rack=rack,
+            rack_port=rack_port,
+            server_room=room_id,
+        )
+        cross.rack_port_active = not cross.rack_port_active
+        cross.save()
+        return redirect("kvmwebapp:modify_room", room_id=room_id)
+
+    # If the request method is not POST, render the modify_server_room.html template with a form
+    # that contains input fields for the row, rack, rack_port, and server_room values
+    context = {
+        "room_id": room_id,
+    }
+
+    return render(request, "modify_server_room.html", context)
