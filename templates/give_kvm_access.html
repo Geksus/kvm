@@ -1,6 +1,7 @@
+{% load crispy_forms_filters %}
 {% load crispy_forms_tags %}
 <div class="container">
-    <h1 id="title">Create User</h1>
+    <h1 id="title">Give KVM Access</h1>
     <form id="create-user-form" method="POST" action="{% url 'kvmwebapp:create_user' %}">
         {% csrf_token %}
         <div class="form-group row">
@@ -10,17 +11,7 @@
         </div>
         <div class="form-group row">
             <div class="col-sm-9 offset-sm-3">
-                <input type="text" class="form-control" id="first_name" name="first_name" placeholder="First name" required>
-            </div>
-        </div>
-        <div class="form-group row">
-            <div class="col-sm-9 offset-sm-3">
-                <input type="text" class="form-control" id="last_name" name="last_name" placeholder="Last name" required>
-            </div>
-        </div>
-        <div class="form-group row">
-            <div class="col-sm-9 offset-sm-3">
-                <input type="text" class="form-control" id="email" name="email" placeholder="Email" required>
+                <input type="text" class="form-control" id="email" name="email" placeholder="Email">
             </div>
         </div>
 
@@ -65,12 +56,10 @@ document.getElementById('create-user-form').addEventListener('submit', function(
     document.getElementById('id_hidden_username').value = document.getElementById('id_username').value;
     document.getElementById('id_username').hidden = true;
     document.getElementById('create-button').hidden = true;
-    document.getElementById('first_name').hidden = true;
-    document.getElementById('last_name').hidden = true;
     document.getElementById('email').hidden = true;
     document.getElementById("home").style.display = "block";
-    {#document.getElementById('title').innerHTML = 'User Created';#}
-    {#document.getElementById('title').style="background-color: #00ff00";#}
+    document.getElementById('title').innerHTML = 'User Created';
+    document.getElementById('title').style="background-color: #00ff00";
 
     var now = new Date();
     document.getElementById('id_start_time').value = formatDate(now);
@@ -90,10 +79,10 @@ document.getElementById('create-user-form').addEventListener('submit', function(
         return response.json();  // Always parse the JSON response
     }).then(function(data) {
         if (data.success) {
-            document.getElementById('title').innerHTML = 'User Created';
+            document.getElementById('title').innerHTML = 'Access given';
             document.getElementById('title').style="background-color: #00ff00";
             console.log('Form submission successful');
-            var message = 'Username: ' + data.username + '<br>Password: ' + data.password + '<br>First name: ' + data.first_name + '<br>Last name: ' + data.last_name + '<br>Email: ' + data.email + '<br>Issued by: ' + data.issued_by + '<br><br>Use your username and password to log in to the KVM web app.';
+            var message = 'Username: ' + data.username + '<br>Password: ' + data.password + '<br>Email: ' + data.email + '<br>Issued by: ' + data.issued_by + '<br><br>Use your username and password to log in to the KVM web app.';
         } else {
             document.getElementById('title').innerHTML = 'Error';
             document.getElementById('title').style="background-color: red";
@@ -111,3 +100,4 @@ document.getElementById('create-user-form').addEventListener('submit', function(
 
 
 </script>
+

@@ -18,13 +18,9 @@
             userInfoWindow.document.write('<html><head><title>User Info</title></head><body>');
             userInfoWindow.document.write('<h1>User Information</h1>');
             userInfoWindow.document.write('<p>Username: ' + user.username + '</p>');
-            userInfoWindow.document.write('<p>Password: ' + user.password + '</p>');
             userInfoWindow.document.write('<p>First name: ' + user.first_name + '</p>');
             userInfoWindow.document.write('<p>Last name: ' + user.last_name + '</p>');
             userInfoWindow.document.write('<p>Email: ' + user.email + '</p>');
-            userInfoWindow.document.write('<p>Start time: ' + user.start_time + '</p>');
-            userInfoWindow.document.write('<p>Active for: ' + user.active_for + '</p>');
-            userInfoWindow.document.write('<p>Issued by: ' + user.issued_by + '</p>');
             userInfoWindow.document.write('<button onclick="window.opener.deleteUser(' + userId + '); window.close();">Delete User</button>');
             userInfoWindow.document.write('</body></html>');
         });

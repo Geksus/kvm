@@ -11,6 +11,14 @@ class KVM(models.Model):
     short_name = models.CharField(max_length=8, unique=False, help_text="system_name")
     ip = models.GenericIPAddressField(protocol="IPv4")
     number_of_ports = models.PositiveSmallIntegerField(default=32)
+    server_room_id = models.OneToOneField(
+        "ServerRoom",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_column="server_room_id",
+        help_text="server_room_id",
+    )
 
     def clean(self):
         # Validate that fqdn and short_name are alphanumeric
@@ -18,6 +26,9 @@ class KVM(models.Model):
             raise ValidationError(
                 _("short_name should only contain alphanumeric characters.")
             )
+
+    def __str__(self):
+        return self.short_name
 
     class Meta:
         db_table = "KVM"
@@ -110,6 +121,15 @@ class ServerRoom(models.Model):
     num_rows = models.PositiveSmallIntegerField(default=4)
     num_racks = models.PositiveSmallIntegerField(default=14)
     ports_per_rack = models.PositiveSmallIntegerField(default=2)
+    kvm_id = models.ForeignKey(
+        "KVM",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_column="kvm_id",
+        help_text="id_hosts",
+        unique=True,
+    )
 
     def __str__(self):
         return self.name

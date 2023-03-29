@@ -1,7 +1,7 @@
 from django.urls import path
 
 from kvmwebapp.views import (
-    create_user,
+    give_kvm_access,
     IndexView,
     user_info,
     delete_user,
@@ -16,15 +16,16 @@ from kvmwebapp.views import (
     logout_view,
     UserListView,
     UserDetailView,
+    access_info,
 )
 
 app_name = "kvmwebapp"
 
 urlpatterns = [
     path("", IndexView.as_view(), name="index"),
-    path("create_user/", create_user, name="create_user"),
+    path("create_user/", give_kvm_access, name="create_user"),
     path("server_room/<int:server_room>/", IndexView.as_view(), name="server_room"),
-    path("server_room/<int:server_room>/create_user/", create_user, name="create_user"),
+    path("server_room/<int:server_room>/create_user/", give_kvm_access, name="create_user"),
     path("user_info/<int:user_id>/", user_info, name="user_info"),
     path("delete_user/<int:user_id>/", delete_user, name="delete_user"),
     path("create_sroom/", CreateServerRoom.as_view(), name="create_server_room"),
@@ -37,4 +38,5 @@ urlpatterns = [
     path("register/", register, name="register"),
     path("logout/", logout_view, name="logout"),
     path("user_list/", UserListView.as_view(), name="user_list"),
+    path("access_info/<int:user_id>", access_info, name="access_info"),
 ]

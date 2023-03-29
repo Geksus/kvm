@@ -19,7 +19,7 @@ from django.views.generic import (
 from django.shortcuts import render, get_object_or_404, redirect
 
 from kvmwebapp.models import Cross, CrossFilter, User, ServerRoom, KVM
-from .forms import UserForm, CreateServerRoomForm, CreateKVMForm, DjangoUserCreationForm
+from .forms import KVMAccessForm, CreateServerRoomForm, CreateKVMForm, DjangoUserCreationForm
 
 
 def create_port_list(filtered_cross_list, server_room_number):
@@ -46,8 +46,9 @@ def create_port_list(filtered_cross_list, server_room_number):
                 for cross in cross_queryset:
                     port_info["kvm_port"] = cross.kvm_port if cross.kvm_port else "-"
                     port_info["server_room"] = cross.server_room.id
+                    cross.kvm_id = cross.server_room.kvm_id
                     if cross.kvm_id:
-                        port_info["short_name"] = cross.kvm_id.short_name
+                        port_info["short_name"] = cross.server_room.kvm_id.short_name
                         if cross.user:
                             port_info["username"] = cross.user.username
                             port_info["start_time"] = cross.user.start_time.strftime(
@@ -151,11 +152,11 @@ class IndexView(TemplateView):
 
 
 @login_required
-def create_user(request, *args, **kwargs):
+def give_kvm_access(request, *args, **kwargs):
     row, rack, rack_port, server_room = getting_data(request)
 
     if request.method == "POST":
-        form = UserForm(request.POST)
+        form = KVMAccessForm(request.POST)
         if form.is_valid():
             cross = Cross.objects.get(
                 row=int(request.POST["row"]),
@@ -176,6 +177,7 @@ def create_user(request, *args, **kwargs):
             user.save()
             if cross is not None:
                 cross.user_id = user.id
+                cross.kvm_id = ServerRoom.objects.get(id=int(request.POST["server_room"])).kvm_id
                 cross.kvm_port_active = True
                 cross.save()
             return JsonResponse(
@@ -194,7 +196,7 @@ def create_user(request, *args, **kwargs):
             print("Form errors:", form.errors)  # Debugging line
             return JsonResponse({"errors": form.errors})
     else:
-        form = UserForm()
+        form = KVMAccessForm()
         context = {
             "form": form,
             "row": row,
@@ -203,7 +205,7 @@ def create_user(request, *args, **kwargs):
             "server_room": server_room,
             "current_time": datetime.now().strftime("%H:%M"),
         }
-        return render(request, "create_user.html", context)
+        return render(request, "give_kvm_access.html", context)
 
 
 def getting_data(request):
@@ -216,6 +218,19 @@ def getting_data(request):
 
 
 def user_info(request, user_id):
+    user = get_object_or_404(DjangoUser, pk=user_id)
+
+    user_data = {
+        "username": user.username,
+        "password": user.password,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "email": user.email,
+    }
+    return JsonResponse(user_data)
+
+
+def access_info(request, user_id):
     user = get_object_or_404(User, pk=user_id)
     duration = timezone.now() - user.start_time
 
@@ -281,6 +296,7 @@ class CreateServerRoom(UserPassesTestMixin, CreateView):
 
     def test_func(self):
         return self.request.user.is_superuser
+
     def form_valid(self, form):
         # Call the parent class's form_valid() method to save the form data
         response = super().form_valid(form)
@@ -295,8 +311,11 @@ class CreateServerRoom(UserPassesTestMixin, CreateView):
                         rack_port=rack_port,
                         server_room=self.object,
                         kvm_port_active=False,
+                        kvm_id=self.object.kvm_id,
                     )
-
+        kvm = KVM.objects.get(id=self.object.kvm_id.id)
+        kvm.server_room_id = self.object
+        kvm.save()
         return response
 
 

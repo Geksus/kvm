@@ -4,10 +4,12 @@ from .models import User, ServerRoom, KVM
 from django.contrib.auth.models import User as DjangoUser
 
 
-class UserForm(forms.ModelForm):
+class KVMAccessForm(forms.ModelForm):
+    # username = forms.ModelChoiceField(queryset=DjangoUser.objects.all())
+
     class Meta:
         model = User
-        fields = ("username", "first_name", "last_name", "email")
+        fields = ("username", "email")
 
     def clean_username(self):
         data = self.cleaned_data["username"]
@@ -20,6 +22,7 @@ class UserForm(forms.ModelForm):
                 "username should be between 3 and 12 characters."
             )
         return data
+
 
 
 class DjangoUserCreationForm(forms.ModelForm):
@@ -42,7 +45,7 @@ class DjangoUserCreationForm(forms.ModelForm):
 class CreateServerRoomForm(forms.ModelForm):
     class Meta:
         model = ServerRoom
-        fields = ("name", "description", "num_rows", "num_racks", "ports_per_rack")
+        fields = ("name", "description", "num_rows", "num_racks", "ports_per_rack", "kvm_id")
 
     def clean(self):
         data = self.cleaned_data
@@ -58,7 +61,7 @@ class CreateServerRoomForm(forms.ModelForm):
 class CreateKVMForm(forms.ModelForm):
     class Meta:
         model = KVM
-        fields = ("fqdn", "short_name", "ip", "number_of_ports")
+        fields = ("fqdn", "short_name", "ip", "number_of_ports", "server_room_id")
 
     def clean(self):
         data = self.cleaned_data

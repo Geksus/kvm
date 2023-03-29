@@ -86,7 +86,6 @@ function updateCountdown() {
 
 <script>
   var portList = {{ port_list|safe }};
-  console.log(portList.length)
   for (var i = 0; i < portList.length; i++) {
     var port = portList[i];
     console.log(port)
@@ -120,7 +119,7 @@ function updateCountdown() {
 // Function to open a new window with user information and a delete button
 function showUserInfo(userId) {
     // Fetch the user information from your server
-    fetch('/user_info/' + userId)
+    fetch('/access_info/' + userId)
         {#console.log('user_info/' + userId)#}
         .then(response => response.json())
         .then(user => {
