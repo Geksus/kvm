@@ -33,7 +33,9 @@ function updateCountdown() {
 </head>
 <body>
 {% if user.is_authenticated %}
-    <button onclick="location.href='/logout/'">Logout</button>
+    <button onclick="location.href='/logout/'">Logout</button> <button onclick="location.href='/register/'">Register</button>
+    <br>
+    <p>Logged in as: {{ user.username }}</p>
 {% else %}
     <button onclick="location.href='/accounts/login/'">Login</button>
 {% endif %}
@@ -48,7 +50,7 @@ function updateCountdown() {
         {% endfor %}
 
     <div id="countdown" style="position: fixed; top: 10px; right: 10px; font-size: 20px;"></div>
-    <button class="btn btn-primary" onclick="window.location.href='/sroom_list/';">List of Server Rooms</button> <button class="btn btn-primary" onclick="window.location.href='/kvm_list/';">List of KVM's</button> <button id="toggle-animation">Amaze me!</button>
+    <button class="btn btn-primary" onclick="window.location.href='/user_list/';">List of Users</button> <button class="btn btn-primary" onclick="window.location.href='/sroom_list/';">List of Server Rooms</button> <button class="btn btn-primary" onclick="window.location.href='/kvm_list/';">List of KVM's</button> <button id="toggle-animation">Amaze me!</button>
 {#    <form method="get">#}
 {#        {{ filter.form.as_p }}#}
 {#        <button type="submit">Filter</button>#}
@@ -91,7 +93,7 @@ function updateCountdown() {
     var portElement = document.getElementById("port-" + port.row + "-" + port.rack + "-" + port.rack_port);
     var content = "";
     if (port.short_name !== "-") {
-      content += "User: " + port.username + "<br/>";
+      content += port.username + "<br/>";
       {#content += "Start Time: " + port.start_time + "<br/>";#}
       content += "KVM: " + port.short_name + "/" + port.kvm_port + "<br/>";
       {#content += "Server room: " + port.server_room;#}
@@ -109,9 +111,10 @@ function updateCountdown() {
     portElement.innerHTML = content;
   }
 
-  function openCreateUserForm(row, rack, rack_port, server_room) {
-    var win = window.open('create_user?row=' + row + '&rack=' + rack + '&rack_port=' + rack_port + '&server_room=' + server_room, '_blank', 'width=500,height=500');
-  }
+    function openCreateUserForm(row, rack, rack_port, server_room) {
+    var win = window.location.href = "create_user?row=" + row + "&rack=" + rack + "&rack_port=" + rack_port + "&server_room=" + server_room;
+}
+
 
 
 // Function to open a new window with user information and a delete button
@@ -127,8 +130,12 @@ function showUserInfo(userId) {
             userInfoWindow.document.write('<h1>User Information</h1>');
             userInfoWindow.document.write('<p>Username: ' + user.username + '</p>');
             userInfoWindow.document.write('<p>Password: ' + user.password + '</p>');
+            userInfoWindow.document.write('<p>First name: ' + user.first_name + '</p>');
+            userInfoWindow.document.write('<p>Last name: ' + user.last_name + '</p>');
+            userInfoWindow.document.write('<p>Email: ' + user.email + '</p>');
             userInfoWindow.document.write('<p>Start time: ' + user.start_time + '</p>');
             userInfoWindow.document.write('<p>Active for: ' + user.active_for + '</p>');
+            userInfoWindow.document.write('<p>Issued by: ' + user.issued_by + '</p>');
             userInfoWindow.document.write('<button onclick="window.opener.deleteUser(' + userId + '); window.close();">Delete User</button>');
             userInfoWindow.document.write('</body></html>');
         });

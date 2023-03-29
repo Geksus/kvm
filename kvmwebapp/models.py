@@ -6,7 +6,6 @@ from django_filters import rest_framework as filters
 from django.contrib.auth.models import User as DjangoUser
 
 
-
 class KVM(models.Model):
     fqdn = models.CharField(max_length=40, unique=True, help_text="url")
     short_name = models.CharField(max_length=8, unique=False, help_text="system_name")
@@ -88,10 +87,18 @@ class User(models.Model):
     username = models.CharField(max_length=40, unique=True, help_text="username")
     password = models.CharField(max_length=255, unique=False, help_text="password")
     start_time = models.DateTimeField(default=datetime.now(), blank=True)
-    first_name = models.CharField(max_length=40, unique=False, help_text="first_name", blank=True)
-    last_name = models.CharField(max_length=40, unique=False, help_text="last_name", blank=True)
-    email = models.EmailField(max_length=40, unique=False, help_text="email", blank=True)
-    issued_by = models.OneToOneField(DjangoUser, on_delete=models.SET_NULL, null=True, blank=True)
+    first_name = models.CharField(
+        max_length=40, unique=False, help_text="first_name", blank=True
+    )
+    last_name = models.CharField(
+        max_length=40, unique=False, help_text="last_name", blank=True
+    )
+    email = models.EmailField(
+        max_length=40, unique=False, help_text="email", blank=True
+    )
+    issued_by = models.ForeignKey(
+        DjangoUser, on_delete=models.SET_NULL, null=True, blank=True
+    )
 
     class Meta:
         db_table = "User"

@@ -1,0 +1,72 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static "style.css" %}">
+{% for user in user_list %}
+    <div class="user">
+        <button style="width: 100px" class="user_name" onclick="showUserInfo({{ user.id }})">{{ user.username }}</button>
+    </div>
+{% endfor %}
+
+<script>
+    function showUserInfo(userId) {
+    // Fetch the user information from your server
+    fetch('/user_info/' + userId)
+        {#console.log('user_info/' + userId)#}
+        .then(response => response.json())
+        .then(user => {
+            // Create a new window with user information and a delete button
+            var userInfoWindow = window.open('', '_blank', 'width=500,height=500');
+            userInfoWindow.document.write('<html><head><title>User Info</title></head><body>');
+            userInfoWindow.document.write('<h1>User Information</h1>');
+            userInfoWindow.document.write('<p>Username: ' + user.username + '</p>');
+            userInfoWindow.document.write('<p>Password: ' + user.password + '</p>');
+            userInfoWindow.document.write('<p>First name: ' + user.first_name + '</p>');
+            userInfoWindow.document.write('<p>Last name: ' + user.last_name + '</p>');
+            userInfoWindow.document.write('<p>Email: ' + user.email + '</p>');
+            userInfoWindow.document.write('<p>Start time: ' + user.start_time + '</p>');
+            userInfoWindow.document.write('<p>Active for: ' + user.active_for + '</p>');
+            userInfoWindow.document.write('<p>Issued by: ' + user.issued_by + '</p>');
+            userInfoWindow.document.write('<button onclick="window.opener.deleteUser(' + userId + '); window.close();">Delete User</button>');
+            userInfoWindow.document.write('</body></html>');
+        });
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+const csrftoken = getCookie('csrftoken');
+
+
+// Function to delete a user and refresh the index page
+function deleteUser(userId) {
+    // Send a request to your server to delete the user
+    fetch('/delete_user/' + userId, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+        },
+    })
+    .then(response => {
+        if (response.ok) {
+            // Refresh the index page after successfully deleting the user
+            window.location.reload();
+        } else {
+            alert('Failed to delete the user.');
+        }
+    });
+}
+
+</script>
+

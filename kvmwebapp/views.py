@@ -1,18 +1,25 @@
 from datetime import datetime
 
 from django.contrib import messages
+from django.contrib.auth.models import User as DjangoUser
 from django.contrib.auth import get_user_model, authenticate, login, logout
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.http import JsonResponse
 from django.urls import reverse_lazy
 from django.utils import timezone
-from django.views.generic import TemplateView, CreateView, ListView, DeleteView
+from django.views.generic import (
+    TemplateView,
+    CreateView,
+    ListView,
+    DeleteView,
+    DetailView,
+)
 from django.shortcuts import render, get_object_or_404, redirect
 
 from kvmwebapp.models import Cross, CrossFilter, User, ServerRoom, KVM
-from .forms import UserForm, CreateServerRoomForm, CreateKVMForm
+from .forms import UserForm, CreateServerRoomForm, CreateKVMForm, DjangoUserCreationForm
 
 
 def create_port_list(filtered_cross_list, server_room_number):
@@ -80,6 +87,8 @@ def create_port_list(filtered_cross_list, server_room_number):
 #         # context['filter'] = cross_filter
 #
 #         return context
+
+
 class IndexView(TemplateView):
     template_name = "base.html"
 
@@ -141,6 +150,7 @@ class IndexView(TemplateView):
         return context
 
 
+@login_required
 def create_user(request, *args, **kwargs):
     row, rack, rack_port, server_room = getting_data(request)
 
@@ -158,14 +168,27 @@ def create_user(request, *args, **kwargs):
             user.start_time = datetime.now()
             User = get_user_model()
             user.password = User.objects.make_random_password(length=10)
+            first_name = user.first_name
+            last_name = user.last_name
+            email = user.email
+            start_time = user.start_time
+            user.issued_by = request.user
             user.save()
-            user_info(request, user.id)
             if cross is not None:
                 cross.user_id = user.id
                 cross.kvm_port_active = True
                 cross.save()
             return JsonResponse(
-                {"success": True, "username": user.username, "password": user.password}
+                {
+                    "success": True,
+                    "username": user.username,
+                    "password": user.password,
+                    "first_name": first_name,
+                    "last_name": last_name,
+                    "email": email,
+                    "start_time": start_time.strftime("%d-%m-%Y %H:%M:%S"),
+                    "issued_by": request.user.username,
+                }
             )
         else:
             print("Form errors:", form.errors)  # Debugging line
@@ -192,7 +215,6 @@ def getting_data(request):
     return [row, rack, rack_port, server_room]
 
 
-
 def user_info(request, user_id):
     user = get_object_or_404(User, pk=user_id)
     duration = timezone.now() - user.start_time
@@ -211,10 +233,21 @@ def user_info(request, user_id):
         "password": user.password,
         "start_time": user.start_time.strftime("%d-%m-%Y %H:%M:%S"),
         "active_for": active_for,
+        "issued_by": user.issued_by.username,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "email": user.email,
     }
     return JsonResponse(user_data)
 
 
+class UserDetailView(DetailView):
+    model = User
+    template_name = "user_detail.html"
+
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
 def delete_user(request, user_id):
     user = get_object_or_404(User, pk=user_id)
     cross = Cross.objects.get(user=user)
@@ -232,20 +265,22 @@ def logging(request):
             "user": log.username,
             "start_time": log.start_time.strftime("%d-%m-%Y %H:%M:%S"),
             "KVM": Cross.objects.get(user=log.id).kvm_id.short_name,
-            'id': log.id,
+            "id": log.id,
         }
         for log in logs
     ]
-    context = {'logs': logs_list}
-    return render(request, 'logs.html', context)
+    context = {"logs": logs_list}
+    return render(request, "logs.html", context)
 
 
-class CreateServerRoom(LoginRequiredMixin, CreateView):
+class CreateServerRoom(UserPassesTestMixin, CreateView):
     model = ServerRoom
     form_class = CreateServerRoomForm
     template_name = "serverroom_form.html"
     success_url = reverse_lazy("kvmwebapp:index")
 
+    def test_func(self):
+        return self.request.user.is_superuser
     def form_valid(self, form):
         # Call the parent class's form_valid() method to save the form data
         response = super().form_valid(form)
@@ -265,12 +300,15 @@ class CreateServerRoom(LoginRequiredMixin, CreateView):
         return response
 
 
-class CreateKVM(LoginRequiredMixin, CreateView):
+class CreateKVM(UserPassesTestMixin, CreateView):
     model = KVM
     form = CreateKVMForm
     fields = ["fqdn", "short_name", "ip", "number_of_ports"]
     template_name = "kvm_form.html"
     success_url = reverse_lazy("kvmwebapp:index")
+
+    def test_func(self):
+        return self.request.user.is_superuser
 
 
 class ServerRoomListView(ListView):
@@ -280,10 +318,11 @@ class ServerRoomListView(ListView):
 
 
 @login_required
+@user_passes_test(lambda u: u.is_superuser)
 def delete_server_room(*args, **kwargs):
-    server_room = get_object_or_404(ServerRoom, pk=kwargs['room_id'])
+    server_room = get_object_or_404(ServerRoom, pk=kwargs["room_id"])
     server_room.delete()
-    return redirect('kvmwebapp:index')
+    return redirect("kvmwebapp:index")
 
 
 class KVMListView(ListView):
@@ -291,48 +330,64 @@ class KVMListView(ListView):
     template_name = "kvm_list.html"
     context_object_name = "kvm_list"
 
+
 @login_required
+@user_passes_test(lambda u: u.is_superuser)
 def delete_kvm(*args, **kwargs):
-    kvm = get_object_or_404(KVM, pk=kwargs['kvm_id'])
+    kvm = get_object_or_404(KVM, pk=kwargs["kvm_id"])
     kvm.delete()
-    return redirect('kvmwebapp:index')
+    return redirect("kvmwebapp:index")
 
 
 def login_view(request):
     print("Login view called")  # Debug print
-    if request.method == 'POST':
+    if request.method == "POST":
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
             print("Form is valid")  # Debug print
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
+            username = form.cleaned_data.get("username")
+            password = form.cleaned_data.get("password")
             user = authenticate(username=username, password=password)
             if user is not None:
                 login(request, user)
-                return redirect('kvmwebapp:index')
+                return redirect("kvmwebapp:index")
             else:
-                messages.error(request, 'Invalid username or password.')
+                messages.error(request, "Invalid username or password.")
                 print("Form errors:", form.errors)
         else:
-            messages.error(request, 'Invalid username or password.')
+            messages.error(request, "Invalid username or password.")
             print("Form errors:", form.errors)
     form = AuthenticationForm()
-    return render(request, 'login.html', {'form': form})
+    return render(request, "login.html", {"form": form})
 
 
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
 def register(request):
-    if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+    if request.method == "POST":
+        form = DjangoUserCreationForm(request.POST)
         if form.is_valid():
-            user = form.save()
+            user = form.save(commit=False)
+            user.set_password(form.cleaned_data["password"])
+            user.save()
             login(request, user)
-            return redirect('home')  # Replace 'home' with the name of the view you want to redirect to after registration
+            return redirect(
+                "kvmwebapp:index"
+            )  # Replace 'home' with the name of the view you want to redirect to after registration
     else:
-        form = UserCreationForm()
-    return render(request, 'register.html', {'form': form})
+        form = DjangoUserCreationForm()
+    return render(request, "register.html", {"form": form})
 
 
 def logout_view(request):
     logout(request)
-    return redirect('kvmwebapp:index')  # Replace 'login' with the name of the view you want to redirect to after logout
+    return redirect(
+        "kvmwebapp:index"
+    )  # Replace 'login' with the name of the view you want to redirect to after logout
 
+
+class UserListView(ListView):
+    model = DjangoUser
+    ordering = ["username"]
+    template_name = "user_list.html"
+    context_object_name = "user_list"
