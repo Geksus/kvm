@@ -90,7 +90,7 @@ class IndexView(LoginRequiredMixin, TemplateView):
                 context["server_room"]
             )  # Get the server_room from the request or use a default value
         except KeyError:
-            server_room = 1
+            server_room = min(server_room.id for server_room in server_rooms)
 
         logs = User.objects.filter(cross__server_room_id=server_room).order_by(
             "-start_time"

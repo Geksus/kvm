@@ -34,41 +34,18 @@ function updateCountdown() {
 
     <title>{% block title %}KVM Table{% endblock %}</title>
 
-
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 20px;
+    }
+  </style>
 </head>
-<body>
+<body style=": 20px">
 <!-- Modal -->
-<div class="modal fade" id="portModal" tabindex="-1" aria-labelledby="portModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="portModalLabel">Choose an action</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <button type="button" class="btn btn-primary" id="createUserBtn">Give KVM Access</button>
-        <button type="button" class="btn btn-secondary" id="toggleActiveBtn">Activate/Deactivate Port</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Modal to activate/deactivate port -->
-<div class="modal fade" id="activatePortModal" tabindex="-1" aria-labelledby="activatePortModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="activatePortModalLabel">Activate/Deactivate Port</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <p>Do you want to activate or deactivate this port?</p>
-        <button type="button" class="btn btn-primary" id="activatePortBtn">Activate</button>
-        <button type="button" class="btn btn-secondary" id="deactivatePortBtn">Deactivate</button>
-      </div>
-    </div>
-  </div>
-</div>
+{% block modal %}
+    {% include 'modals.html' %}
+{% endblock %}
 
 
 {% if user.is_authenticated %}
