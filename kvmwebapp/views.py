@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model, authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import (
@@ -31,17 +31,20 @@ def create_port_list(filtered_cross_list, server_room_number):
     for row in range(1, 5):
         for rack in range(1, 15):
             for rack_port in range(1, 3):
-                port_info = {
-                    "row": row,
-                    "rack": rack,
-                    "rack_port": rack_port,
-                    "rack_port_active": str(Cross.objects.filter(row=row, rack=rack, rack_port=rack_port, server_room=server_room_number).first().rack_port_active),
-                    "kvm_port": "-",
-                    "short_name": "-",
-                    "username": "-",
-                    "start_time": "-",
-                    "server_room": "-",
-                }
+                try:
+                    port_info = {
+                        "row": row,
+                        "rack": rack,
+                        "rack_port": rack_port,
+                        "rack_port_active": str(Cross.objects.filter(row=row, rack=rack, rack_port=rack_port, server_room=server_room_number).first().rack_port_active),
+                        "kvm_port": "-",
+                        "short_name": "-",
+                        "username": "-",
+                        "start_time": "-",
+                        "server_room": "-",
+                    }
+                except AttributeError:
+                    break
                 cross_queryset = filtered_cross_list.filter(
                     row=row,
                     rack=rack,
@@ -97,8 +100,8 @@ class IndexView(LoginRequiredMixin, TemplateView):
             .select_related("kvm_id", "user", "server_room")
             .order_by("row", "rack", "rack_port", "server_room")
         )
-        num_racks = max(cross_list.values_list("rack", flat=True))
-        num_rows = max(cross_list.values_list("row", flat=True))
+        num_racks = ServerRoom.objects.get(id=server_room).num_racks
+        num_rows = ServerRoom.objects.get(id=server_room).num_rows
 
         # Create a filter instance
         cross_filter = CrossFilter(self.request.GET, queryset=cross_list)
@@ -111,9 +114,7 @@ class IndexView(LoginRequiredMixin, TemplateView):
 
         context["num_rows"] = range(1, num_rows + 1)
 
-        context["num_ports"] = range(
-            1, max(filtered_cross_list.values_list("rack_port", flat=True)) + 1
-        )
+        context["num_ports"] = ServerRoom.objects.get(id=server_room).ports_per_rack
         context["logs"] = [
             {
                 "user": log.username,
@@ -305,6 +306,8 @@ class CreateServerRoom(UserPassesTestMixin, CreateView):
         return response
 
 
+from django.db.models import Q
+
 class UpdateServerRoom(UserPassesTestMixin, UpdateView):
     model = ServerRoom
     form_class = CreateServerRoomForm
@@ -314,10 +317,35 @@ class UpdateServerRoom(UserPassesTestMixin, UpdateView):
     def test_func(self):
         return self.request.user.is_superuser
 
-    def remove_crosses(self):
-        crosses = Cross.objects.filter(server_room=self.object)
-        print(len(crosses))
-        crosses.delete()
+    def update_crosses(self):
+        # Update or create crosses
+        for row in range(1, self.object.num_rows + 1):
+            for rack in range(1, self.object.num_racks + 1):
+                for rack_port in range(1, self.object.ports_per_rack + 1):
+                    Cross.objects.get_or_create(
+                        row=row,
+                        rack=rack,
+                        rack_port=rack_port,
+                        server_room=self.object,
+                        defaults={"kvm_port_active": False, "kvm_id": self.object.kvm_id},
+                    )
+
+        # Delete extra crosses
+        Cross.objects.filter(
+            Q(server_room=self.object)
+            & (
+                Q(row__gt=self.object.num_rows)
+                | Q(rack__gt=self.object.num_racks)
+                | Q(rack_port__gt=self.object.ports_per_rack)
+            )
+        ).delete()
+
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.update_crosses()
+        self.object.save()
+        return HttpResponseRedirect(self.get_success_url())
+
 
 
 class CreateKVM(UserPassesTestMixin, CreateView):
@@ -411,27 +439,3 @@ class UserListView(ListView):
     ordering = ["username"]
     template_name = "user_list.html"
     context_object_name = "user_list"
-
-
-def modify_server_room(request, room_id):
-    if request.method == "POST":
-        row = request.POST.get("row")
-        rack = request.POST.get("rack")
-        rack_port = request.POST.get("rack_port")
-        cross = Cross.objects.get(
-            row=row,
-            rack=rack,
-            rack_port=rack_port,
-            server_room=room_id,
-        )
-        cross.rack_port_active = not cross.rack_port_active
-        cross.save()
-        return redirect("kvmwebapp:modify_room", room_id=room_id)
-
-    # If the request method is not POST, render the modify_server_room.html template with a form
-    # that contains input fields for the row, rack, rack_port, and server_room values
-    context = {
-        "room_id": room_id,
-    }
-
-    return render(request, "modify_server_room.html", context)

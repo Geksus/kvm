@@ -51,34 +51,10 @@ function updateCountdown() {
 
     <div id="countdown" style="position: fixed; top: 10px; right: 10px; font-size: 20px;"></div>
     <button class="btn btn-primary" onclick="window.location.href='/user_list/';">List of Users</button> <button class="btn btn-primary" onclick="window.location.href='/sroom_list/';">List of Server Rooms</button> <button class="btn btn-primary" onclick="window.location.href='/kvm_list/';">List of KVM's</button> <button id="toggle-animation">Amaze me!</button>
-{#    <form method="get">#}
-{#        {{ filter.form.as_p }}#}
-{#        <button type="submit">Filter</button>#}
-{#    </form>#}
     <br>
-    <div style="overflow: auto">
-    <table id="port-table" class="port-table">
-        <thead>
-            <tr>
-                <th></th>
-                {% for rack in num_racks %}
-                    <th colspan="2">Rack {{ rack }}</th>
-                {% endfor %}
-            </tr>
-        </thead>
-        <tbody>
-            {% for row in num_rows %}
-                <tr>
-                    <td>{{ row }}</td>
-                    {% for rack in num_racks %}
-                        <td id="port-{{ row }}-{{ rack }}-1"></td>
-                        <td id="port-{{ row }}-{{ rack }}-2"></td>
-                    {% endfor %}
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    </div>
+    {% block table %}
+        {% include 'table.html' %}
+    {% endblock %}
     <br>
 {% block logs %}
     {% include 'logs.html' %}
