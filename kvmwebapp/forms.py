@@ -67,8 +67,8 @@ class CreateServerRoomForm(forms.ModelForm):
 
     def clean(self):
         data = self.cleaned_data
-        if not 3 <= len(data["name"]) <= 12:
-            raise forms.ValidationError("Name should be between 3 and 12 characters.")
+        if not 3 <= len(data["name"]) <= 20:
+            raise forms.ValidationError("Name should be between 3 and 20 characters.")
         if data["num_rows"] <= 0:
             raise forms.ValidationError("Number of rows should be greater than 0.")
         if data["num_racks"] <= 0:

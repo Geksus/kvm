@@ -52,7 +52,8 @@ def create_port_list(filtered_cross_list, server_room_number):
                     server_room=server_room_number,
                 )
                 for cross in cross_queryset:
-                    port_info["kvm_port"] = cross.kvm_port if cross.kvm_port else "-"
+                    port_info["id"] = cross.id
+                    port_info["kvm_port"] = cross.kvm_port or "-"
                     port_info["server_room"] = cross.server_room.id
                     cross.kvm_id = cross.server_room.kvm_id
                     if cross.kvm_id:
@@ -306,7 +307,8 @@ class CreateServerRoom(UserPassesTestMixin, CreateView):
         return response
 
 
-from django.db.models import Q
+from django.db.models import Q, F
+
 
 class UpdateServerRoom(UserPassesTestMixin, UpdateView):
     model = ServerRoom
@@ -439,3 +441,19 @@ class UserListView(ListView):
     ordering = ["username"]
     template_name = "user_list.html"
     context_object_name = "user_list"
+
+
+def toggle_rack_port_active(request, *args, **kwargs):
+    print(request.GET)
+    cross = Cross.objects.get(
+                row=int(request.GET["row"]),
+                rack=int(request.GET["rack"]),
+                rack_port=int(request.GET["rack_port"]),
+                server_room=int(request.GET["server_room"]),
+            )
+    cross.rack_port_active = not cross.rack_port_active
+    cross.save()
+    return redirect("kvmwebapp:index")
+
+
+
