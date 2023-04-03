@@ -19,11 +19,11 @@ class KVMAccessForm(forms.ModelForm):
             raise forms.ValidationError("User does not exist.")
         if not data.isalnum():
             raise forms.ValidationError(
-                "username should only contain alphanumeric characters."
+                "Username should only contain alphanumeric characters."
             )
         if not 3 <= len(data) <= 12:
             raise forms.ValidationError(
-                "username should be between 3 and 12 characters."
+                "Username should be between 3 and 12 characters."
             )
         return data
 
@@ -73,6 +73,8 @@ class CreateServerRoomForm(forms.ModelForm):
             raise forms.ValidationError("Number of rows should be greater than 0.")
         if data["num_racks"] <= 0:
             raise forms.ValidationError("Number of racks should be greater than 0.")
+        if data["kvm_id"] is None:
+            raise forms.ValidationError("KVMs cannot be empty. If there are no KVMs, please create one first.")
         return data
 
 

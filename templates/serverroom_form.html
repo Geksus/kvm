@@ -13,3 +13,7 @@
 {{ form|crispy }}
     <button class="btn-outline-warning" type="submit">OK</button>
 </form>
+
+<button onclick="location.href='{% url 'kvmwebapp:create_kvm' %}'" class="btn-outline-warning">Create KVM</button>
+
+{% load static %}

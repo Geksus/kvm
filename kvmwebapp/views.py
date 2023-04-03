@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.http import JsonResponse, HttpResponseRedirect
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.utils import timezone
 from django.views.generic import (
     TemplateView,
@@ -77,7 +77,11 @@ class IndexView(LoginRequiredMixin, TemplateView):
 
     def get(self, request, *args, **kwargs):
         self.server_room = kwargs.get("server_room", 1)
+        server_room_exist = ServerRoom.objects.first()
+        if not server_room_exist:
+            return HttpResponseRedirect(reverse("kvmwebapp:create_server_room"))
         return super().get(request, *args, **kwargs)
+
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -132,6 +136,7 @@ class IndexView(LoginRequiredMixin, TemplateView):
 
 
 @login_required
+@user_passes_test(lambda u: u.is_superuser)
 def give_kvm_access(request, *args, **kwargs):
     row, rack, rack_port, server_room = getting_data(request)
 

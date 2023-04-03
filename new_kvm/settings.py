@@ -112,6 +112,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+ALLOWED_REDIRECT_PROTOCOLS = ['kvmwebapp']
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
