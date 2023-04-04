@@ -1,4 +1,7 @@
 {% block modal %}
+    {% load static %}
+        <link rel="stylesheet" type="text/css" href="{% static "style.css" %}">
+
 <div class="modal fade" id="portModal" tabindex="-1" aria-labelledby="portModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -23,9 +26,8 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <p>Do you want to activate or deactivate this port?</p>
+        <p>Do you want to activate this port?</p>
         <button type="button" class="btn btn-primary" id="activatePortBtn">Activate</button>
-        <button type="button" class="btn btn-secondary" id="deactivatePortBtn">Deactivate</button>
       </div>
     </div>
   </div>

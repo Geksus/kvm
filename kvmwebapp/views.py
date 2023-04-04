@@ -37,7 +37,16 @@ def create_port_list(filtered_cross_list, server_room_number):
                         "row": row,
                         "rack": rack,
                         "rack_port": rack_port,
-                        "rack_port_active": str(Cross.objects.filter(row=row, rack=rack, rack_port=rack_port, server_room=server_room_number).first().rack_port_active),
+                        "rack_port_active": str(
+                            Cross.objects.filter(
+                                row=row,
+                                rack=rack,
+                                rack_port=rack_port,
+                                server_room=server_room_number,
+                            )
+                            .first()
+                            .rack_port_active
+                        ),
                         "kvm_port": "-",
                         "short_name": "-",
                         "username": "-",
@@ -312,7 +321,6 @@ class CreateServerRoom(UserPassesTestMixin, CreateView):
         return response
 
 
-
 class UpdateServerRoom(UserPassesTestMixin, UpdateView):
     model = ServerRoom
     form_class = CreateServerRoomForm
@@ -332,7 +340,10 @@ class UpdateServerRoom(UserPassesTestMixin, UpdateView):
                         rack=rack,
                         rack_port=rack_port,
                         server_room=self.object,
-                        defaults={"kvm_port_active": False, "kvm_id": self.object.kvm_id},
+                        defaults={
+                            "kvm_port_active": False,
+                            "kvm_id": self.object.kvm_id,
+                        },
                     )
 
         # Delete extra crosses
@@ -350,7 +361,6 @@ class UpdateServerRoom(UserPassesTestMixin, UpdateView):
         self.update_crosses()
         self.object.save()
         return HttpResponseRedirect(self.get_success_url())
-
 
 
 class CreateKVM(UserPassesTestMixin, CreateView):
@@ -449,14 +459,11 @@ class UserListView(ListView):
 def toggle_rack_port_active(request, *args, **kwargs):
     print(request.GET)
     cross = Cross.objects.get(
-                row=int(request.GET["row"]),
-                rack=int(request.GET["rack"]),
-                rack_port=int(request.GET["rack_port"]),
-                server_room=int(request.GET["server_room"]),
-            )
+        row=int(request.GET["row"]),
+        rack=int(request.GET["rack"]),
+        rack_port=int(request.GET["rack_port"]),
+        server_room=int(request.GET["server_room"]),
+    )
     cross.rack_port_active = not cross.rack_port_active
     cross.save()
     return redirect("kvmwebapp:index")
-
-
-

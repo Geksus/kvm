@@ -1,12 +1,27 @@
-<!-- user_form.html -->
-
 {% block content %}
-  <h1>Create User</h1>
-  <form method="post" id="create-user-form">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Create User</button>
-  </form>
+  <!-- Button to trigger the modal -->
+  <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createUserModal">
+    Create User
+  </button>
+
+  <!-- Create User Modal -->
+  <div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="createUserModalLabel">Create User</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form method="post" id="create-user-form">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary">Create User</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
 {% endblock %}
 
 {% block javascript %}
@@ -23,7 +38,10 @@
       })
       .then(function (data) {
         if (data.success) {
-          window.open(data.url, '_blank');
+          // Close the modal
+          $('#createUserModal').modal('hide');
+          // Refresh the page to show the new user
+          window.location.reload();
         } else {
           alert(data.errors);
         }
@@ -34,3 +52,4 @@
     });
   </script>
 {% endblock %}
+
