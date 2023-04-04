@@ -2,7 +2,7 @@
 {% load crispy_forms_tags %}
 <div class="container">
     <h1 id="title">Give KVM Access</h1>
-    <form id="create-user-form" method="POST" action="{% url 'kvmwebapp:create_user' %}">
+    <form id="create-user-form" method="POST" action="{% url 'kvmwebapp:give_access' %}">
         {% csrf_token %}
         <div class="form-group row">
             <div class="col-sm-9 offset-sm-3">

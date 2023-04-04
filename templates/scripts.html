@@ -1,0 +1,217 @@
+{% block scripts %}
+
+<script>
+  var portList = {{ port_list|safe }};
+  for (var i = 0; i < portList.length; i++) {
+      var port = portList[i];
+      console.log(port.port_rack_active);
+      var portElement = document.getElementById("port-" + port.row + "-" + port.rack + "-" + port.rack_port);
+        portElement.classList.add("portElement");
+        portElement.dataset.row = port.row;
+        portElement.dataset.rack = port.rack;
+        portElement.dataset.rack_port = port.rack_port;
+        portElement.dataset.server_room = port.server_room;
+        portElement.dataset.id = port.id;
+        if (port.user_id) {
+          portElement.dataset.user_id = port.user_id;
+        }
+
+      var content = "";
+      if (port.rack_port_active === 'True') {
+          if (port.short_name !== "-") {
+              content += port.username + "<br/>";
+              {#content += "Start Time: " + port.start_time + "<br/>";#}
+              content += "KVM: " + port.short_name + "/" + port.kvm_port + "<br/>";
+              if (port.username !== '-') {
+                  portElement.style.backgroundColor = "red";
+                  portElement.setAttribute('onclick', 'showUserInfo(' + port.user_id + ')');
+              } else {
+                  portElement.style.backgroundColor = "green";
+                  portElement.classList.add("openCreateUserForm");
+                  {#portElement.setAttribute('onclick', 'openCreateUserForm(' + port.row + ', ' + port.rack + ', ' + port.rack_port + ', ' + port.server_room + ')');#}
+              }
+          } else {
+              content = "-";
+              portElement.style.backgroundColor = "green";
+          }
+          portElement.innerHTML = content;
+      } else {
+          portElement.style.backgroundColor = "grey";
+          portElement.innerHTML = "Inactive";
+          portElement.classList.add("inactivePortElement");
+          portElement.dataset.row = port.row;
+          portElement.dataset.rack = port.rack;
+          portElement.dataset.rack_port = port.rack_port;
+          portElement.dataset.server_room = port.server_room;
+          portElement.dataset.id = port.id;
+    }
+  }
+
+    function openCreateUserForm(row, rack, rack_port, server_room) {
+    var win = window.location.href = "give_access?row=" + row + "&rack=" + rack + "&rack_port=" + rack_port + "&server_room=" + server_room;
+}
+
+  function togglePortState(row, rack, rack_port, server_room) {
+      {#console.log(port_id);#}
+      var win = window.location.href = "/toggle_rack_port_active?row=" + row + "&rack=" + rack + "&rack_port=" + rack_port + "&server_room=" + server_room;;
+  }
+
+// Function to open a new window with user information and a delete button
+function showUserInfo(userId) {
+    // Fetch the user information from your server
+    fetch('/access_info/' + userId)
+        {#console.log('user_info/' + userId)#}
+        .then(response => response.json())
+        .then(user => {
+            // Create a new window with user information and a delete button
+            var userInfoWindow = window.open('', '_blank', 'width=500,height=500');
+            userInfoWindow.document.write('<html><head><title>User Info</title></head><body>');
+            userInfoWindow.document.write('<h1>User Information</h1>');
+            userInfoWindow.document.write('<p>Username: ' + user.username + '</p>');
+            userInfoWindow.document.write('<p>Password: ' + user.password + '</p>');
+            userInfoWindow.document.write('<p>First name: ' + user.first_name + '</p>');
+            userInfoWindow.document.write('<p>Last name: ' + user.last_name + '</p>');
+            userInfoWindow.document.write('<p>Email: ' + user.email + '</p>');
+            userInfoWindow.document.write('<p>Start time: ' + user.start_time + '</p>');
+            userInfoWindow.document.write('<p>Active for: ' + user.active_for + '</p>');
+            userInfoWindow.document.write('<p>Issued by: ' + user.issued_by + '</p>');
+            userInfoWindow.document.write('<button onclick="window.opener.deleteUser(' + userId + '); window.close();">Delete User</button>');
+            userInfoWindow.document.write('</body></html>');
+        });
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+const csrftoken = getCookie('csrftoken');
+
+
+// Function to delete a user and refresh the index page
+function deleteUser(userId) {
+    // Send a request to your server to delete the user
+    fetch('/remove_access/' + userId, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+        },
+    })
+    .then(response => {
+        if (response.ok) {
+            // Refresh the index page after successfully deleting the user
+            window.location.reload();
+        } else {
+            alert('Failed to delete the user.');
+        }
+    });
+}
+
+var isAnimationOn = false; // default is off
+setInterval(function() {
+  if (isAnimationOn) {
+    var cells = document.querySelectorAll('#port-table td');
+    cells.forEach(function(cell) {
+      if (cell.style.backgroundColor !== 'red') {
+        var colors = ['green', 'blue', 'orange', 'purple'];
+        var randomColor = colors[Math.floor(Math.random() * colors.length)];
+        cell.classList.add('color-change-animation');
+        cell.style.backgroundColor = randomColor;
+        setTimeout(function() {
+          cell.classList.remove('color-change-animation');
+        }, 1000);
+      }
+    });
+  }
+}, 1000);
+
+
+var toggleButton = document.getElementById('toggle-animation');
+toggleButton.addEventListener('click', function() {
+  isAnimationOn = !isAnimationOn;
+  if (isAnimationOn) {
+    toggleButton.textContent = 'Turn off animation';
+  } else {
+    toggleButton.textContent = 'Turn on animation';
+  }
+});
+
+$(document).ready(function() {
+  $(".openCreateUserForm").on("click", function() {
+    var row = $(this).data("row");
+    var rack = $(this).data("rack");
+    var rack_port = $(this).data("rack_port");
+    var server_room = $(this).data("server_room");
+
+    $("#createUserBtn").off("click").on("click", function() {
+      openCreateUserForm(row, rack, rack_port, server_room);
+      $("#portModal").modal("hide");
+    });
+
+    $("#toggleActiveBtn").off("click").on("click", function() {
+        togglePortState(row, rack, rack_port, server_room)
+        $("#portModal").modal("hide");
+    });
+
+    $("#portModal").modal("show");
+  });
+});
+
+$(document).ready(function() {
+  $(".portElement").on("click", function() {
+    var row = $(this).data("row");
+    var rack = $(this).data("rack");
+    var rack_port = $(this).data("rack_port");
+    var server_room = $(this).data("server_room");
+    var id = $(this).data("id");
+    var isActive = $(this).html() !== "Inactive";
+
+    if (!isActive) {
+      $("#activatePortModal").modal("show");
+
+      $("#activatePortBtn").off("click").on("click", function() {
+        window.location.href = "/toggle_rack_port_active?row=" + row + "&rack=" + rack + "&rack_port=" + rack_port + "&server_room=" + server_room;
+      });
+
+      $("#deactivatePortBtn").off("click").on("click", function() {
+        window.location.href = "/toggle_rack_port_active?row=" + row + "&rack=" + rack + "&rack_port=" + rack_port + "&server_room=" + server_room;
+      });
+    }
+  });
+});
+
+
+function updateCountdown() {
+    var countdownElement = document.getElementById('countdown');
+    var remainingTime = parseInt(countdownElement.getAttribute('data-remaining-time'), 10) - 1;
+    countdownElement.setAttribute('data-remaining-time', remainingTime);
+    var minutes = Math.floor(remainingTime / 60);
+    var seconds = remainingTime % 60;
+    countdownElement.textContent = minutes + ':' + String(seconds).padStart(2, '0');
+    if (remainingTime > 0) {
+        setTimeout(updateCountdown, 1000);
+    } else {
+        location.reload();
+    }
+}
+
+    document.addEventListener('DOMContentLoaded', function() {
+    var countdownElement = document.getElementById('countdown');
+    countdownElement.setAttribute('data-remaining-time', 60);
+    updateCountdown();
+});
+
+
+</script>
+{% endblock %}

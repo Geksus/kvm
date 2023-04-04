@@ -16,6 +16,7 @@ from django.views.generic import (
     UpdateView,
 )
 from django.shortcuts import render, get_object_or_404, redirect
+from django.db.models import Q
 
 from kvmwebapp.models import Cross, CrossFilter, User, ServerRoom, KVM
 from .forms import (
@@ -76,6 +77,9 @@ class IndexView(LoginRequiredMixin, TemplateView):
     template_name = "base.html"
 
     def get(self, request, *args, **kwargs):
+        server_room_exists = ServerRoom.objects.first()
+        if not server_room_exists:
+            return redirect("kvmwebapp:create_server_room")
         self.server_room = kwargs.get("server_room", 1)
         return super().get(request, *args, **kwargs)
 
@@ -132,6 +136,7 @@ class IndexView(LoginRequiredMixin, TemplateView):
 
 
 @login_required
+@user_passes_test(lambda u: u.is_superuser)
 def give_kvm_access(request, *args, **kwargs):
     row, rack, rack_port, server_room = getting_data(request)
 
@@ -306,8 +311,6 @@ class CreateServerRoom(UserPassesTestMixin, CreateView):
         kvm.save()
         return response
 
-
-from django.db.models import Q, F
 
 
 class UpdateServerRoom(UserPassesTestMixin, UpdateView):

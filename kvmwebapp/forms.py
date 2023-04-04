@@ -73,6 +73,8 @@ class CreateServerRoomForm(forms.ModelForm):
             raise forms.ValidationError("Number of rows should be greater than 0.")
         if data["num_racks"] <= 0:
             raise forms.ValidationError("Number of racks should be greater than 0.")
+        if data["kvm_id"] is None:
+            raise forms.ValidationError("KVM ID should not be empty. If there are no KVMs, please create one first.")
         return data
 
 
