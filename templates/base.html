@@ -49,11 +49,22 @@ function updateCountdown() {
 
 
 {% if user.is_authenticated %}
-    <button class="btn btn-danger" onclick="location.href='/logout/'">Logout</button> <button class="btn btn-outline-warning" onclick="location.href='/register/'">Register</button>
-    <br>
-    <p>Logged in as: {{ user.username }}</p>
+<style>
+  .auth-buttons {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 1000; /* Ensures the buttons are above other elements */
+  }
+</style>
+<div class="auth-buttons">
+  <button class="btn btn-danger" onclick="location.href='/logout/'">Logout</button>
+  <button class="btn btn-outline-warning" onclick="location.href='/register/'">Register</button>
+</div>
+<br>
+<p>Logged in as: {{ user.username }}</p>
 {% else %}
-    <button class="btn-success" onclick="location.href='/accounts/login/'">Login</button>
+<button class="btn-success" onclick="location.href='/accounts/login/'">Login</button>
 {% endif %}
 
     <div id="countdown" style="position: fixed; top: 10px; right: 10px; font-size: 20px;"></div>
