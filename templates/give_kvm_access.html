@@ -1,16 +1,30 @@
-{% load crispy_forms_filters %}
-{% load crispy_forms_tags %}
+{% block navbar %}
+    {% include "navbar.html" %}
+{% endblock %}
+
+{% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static "style.css" %}">
+
+<div style="height: 70px;"></div> <!-- Placeholder to push content down and avoid being covered by the navbar -->
 <div class="container">
-    <h1 id="title">Give KVM Access</h1>
+    <div class="page_title">
+        <h1 id="title">Give KVM Access</h1>
+    </div>
+<br>
     <form id="create-user-form" method="POST" action="{% url 'kvmwebapp:give_access' %}">
         {% csrf_token %}
         <div class="form-group row">
-            <div class="col-sm-9 offset-sm-3">
-                <input type="text" class="form-control" id="id_username" name="username" placeholder="Username" required>
+            <div class="col-sm-9 offset-sm-0">
+                <select class="form-control" id="id_username" name="username" required>
+                    <option value="">Select a user</option>
+                    {% for user in usernames %}
+                        <option value="{{ user }}">{{ user }}</option>
+                    {% endfor %}
+                </select>
             </div>
         </div>
         <div class="form-group row">
-            <div class="col-sm-9 offset-sm-3">
+            <div class="col-sm-9 offset-sm-0">
                 <input type="text" class="form-control" id="email" name="email" placeholder="Email">
             </div>
         </div>
@@ -27,14 +41,23 @@
         </div>
 
         <div class="form-group row">
-            <div class="col-sm-9 offset-sm-3">
+            <div class="col-sm-9 offset-sm-0">
                 <input id="create-button" type="submit" value="Give" class="btn btn-primary">
             </div>
         </div>
         <input type="hidden" name="username" id="id_hidden_username">
     </form>
-    <div class="message"></div>
-    <br>
+    {% if message != '' %}
+        <br>
+        <div class="kvm_section">
+            <div class="message">{{ message }}</div>
+        </div>
+        <br>
+    {% else %}
+        <div class="kvm_section">
+            <div class="message" style="display: none;"></div>
+        </div>
+    {% endif %}
     <button style="display: none" id="home" onclick="window.history.back()">OK</button>
 </div>
 

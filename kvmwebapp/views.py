@@ -28,11 +28,20 @@ from .forms import (
 )
 
 
+def filter_access():
+    list_of_crosses = [c.user_id for c in Cross.objects.all()]
+    list_of_users = [u.id for u in User.objects.all()]
+    for user in list_of_users:
+        if user not in list_of_crosses:
+            User.objects.get(id=user).delete()
+
+
 def create_port_list(filtered_cross_list, server_room_number):
+    filter_access()
     port_list = []
-    for row in range(1, 5):
-        for rack in range(1, 15):
-            for rack_port in range(1, 3):
+    for row in range(1, 100):
+        for rack in range(1, 100):
+            for rack_port in range(1, 100):
                 try:
                     port_info = {
                         "row": row,
@@ -74,7 +83,6 @@ def create_port_list(filtered_cross_list, server_room_number):
                             port_info["start_time"] = cross.user.start_time.strftime(
                                 "%Y-%m-%d %H:%M:%S"
                             )
-                            print(port_info["start_time"])
                             port_info["current_time"] = datetime.now().strftime(
                                 "%Y-%m-%d %H:%M:%S"
                             )
@@ -89,7 +97,6 @@ def create_port_list(filtered_cross_list, server_room_number):
                                         port_info["start_time"], "%Y-%m-%d %H:%M:%S"
                                     ).tm_hour
                                 )
-                                print(port_info["time_elapsed"])
                     else:
                         port_info["short_name"] = "-"
                         port_info["username"] = "-"
@@ -164,6 +171,7 @@ class IndexView(LoginRequiredMixin, TemplateView):
 @user_passes_test(lambda u: u.is_superuser)
 def give_kvm_access(request, *args, **kwargs):
     row, rack, rack_port, server_room = getting_data(request)
+    usernames = [user.username for user in DjangoUser.objects.all()]
 
     if request.method == "POST":
         form = KVMAccessForm(request.POST)
@@ -216,6 +224,7 @@ def give_kvm_access(request, *args, **kwargs):
             "rack_port": rack_port,
             "server_room": server_room,
             "current_time": datetime.now().strftime("%H:%M"),
+            "usernames": usernames,
         }
         return render(request, "give_kvm_access.html", context)
 
@@ -244,8 +253,6 @@ def user_info(request, user_id):
 
 def access_info(request, user_id):
     user = get_object_or_404(User, pk=user_id)
-    print(user.start_time)
-    print(timezone.now())
     duration = datetime.now() - user.start_time
     first_name = DjangoUser.objects.filter(username=user.username).first().first_name
     last_name = DjangoUser.objects.filter(username=user.username).first().last_name

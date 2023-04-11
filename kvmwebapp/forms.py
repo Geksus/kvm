@@ -5,16 +5,6 @@ from django.contrib.auth.models import User as DjangoUser
 
 
 class KVMAccessForm(forms.ModelForm):
-    # username = forms.ModelChoiceField(queryset=DjangoUser.objects.all())
-
-    # def __init__(self, *args, **kwargs):
-    #     super(KVMAccessForm, self).__init__(*args, **kwargs)
-    #     self.fields["username"].choices = [
-    #         (user.username, user.username)
-    #         for user in DjangoUser.objects.all()
-    #         if user not in User.objects.all()
-    #     ]
-
     class Meta:
         model = User
         fields = ("username", "email")
@@ -58,6 +48,8 @@ class DjangoUserCreationForm(forms.ModelForm):
             raise forms.ValidationError(
                 "username should be between 3 and 12 characters."
             )
+        if data in [u.username for u in User.objects.all()]:
+            raise forms.ValidationError(f"{data} already has access to KVM.")
         return data
 
 
