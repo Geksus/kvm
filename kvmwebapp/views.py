@@ -1,4 +1,5 @@
 from datetime import datetime
+from time import strptime
 
 from django.contrib import messages
 from django.contrib.auth.models import User as DjangoUser
@@ -73,7 +74,20 @@ def create_port_list(filtered_cross_list, server_room_number):
                             port_info["start_time"] = cross.user.start_time.strftime(
                                 "%Y-%m-%d %H:%M:%S"
                             )
+                            port_info["current_time"] = datetime.now().strftime(
+                                "%Y-%m-%d %H:%M:%S"
+                            )
                             port_info["user_id"] = cross.user.id
+                            if port_info["start_time"] and port_info["current_time"]:
+                                port_info["time_elapsed"] = int(
+                                    strptime(
+                                        port_info["current_time"], "%Y-%m-%d %H:%M:%S"
+                                    ).tm_hour
+                                ) - int(
+                                    strptime(
+                                        port_info["start_time"], "%Y-%m-%d %H:%M:%S"
+                                    ).tm_hour
+                                )
                     else:
                         port_info["short_name"] = "-"
                         port_info["username"] = "-"

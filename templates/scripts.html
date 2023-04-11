@@ -23,7 +23,11 @@
               {#content += "Start Time: " + port.start_time + "<br/>";#}
               content += "KVM: " + port.short_name + "/" + port.kvm_port + "<br/>";
               if (port.username !== '-') {
-                  portElement.style.backgroundColor = "red";
+                  if (port.time_elapsed < 3) {
+                      portElement.style.background = "yellow"
+                  } else {
+                      portElement.style.backgroundColor = "red";
+                  }
                   portElement.setAttribute('onclick', 'showUserInfo(' + port.user_id + ')');
               } else {
                   portElement.style.backgroundColor = "green";

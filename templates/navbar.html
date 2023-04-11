@@ -53,7 +53,7 @@
         <li class="nav-item">
           {% if user.is_authenticated %}
             <div class="auth-buttons">
-                <button class="btn btn-success">Logged in as: {{ user.username }}</button><button class="btn btn-danger" onclick="location.href='/accounts/logout/'">Logout</button>
+                <button class="btn btn-success">Logged in as: {{ user.username }}</button><button class="btn btn-danger" onclick="location.href='/logout/'">Logout</button>
             </div>
           {% else %}
             <button class="btn-success" onclick="location.href='/accounts/login/'">Login</button>
