@@ -74,6 +74,7 @@ def create_port_list(filtered_cross_list, server_room_number):
                             port_info["start_time"] = cross.user.start_time.strftime(
                                 "%Y-%m-%d %H:%M:%S"
                             )
+                            print(port_info["start_time"])
                             port_info["current_time"] = datetime.now().strftime(
                                 "%Y-%m-%d %H:%M:%S"
                             )
@@ -88,6 +89,7 @@ def create_port_list(filtered_cross_list, server_room_number):
                                         port_info["start_time"], "%Y-%m-%d %H:%M:%S"
                                     ).tm_hour
                                 )
+                                print(port_info["time_elapsed"])
                     else:
                         port_info["short_name"] = "-"
                         port_info["username"] = "-"
@@ -242,7 +244,9 @@ def user_info(request, user_id):
 
 def access_info(request, user_id):
     user = get_object_or_404(User, pk=user_id)
-    duration = timezone.now() - user.start_time
+    print(user.start_time)
+    print(timezone.now())
+    duration = datetime.now() - user.start_time
     first_name = DjangoUser.objects.filter(username=user.username).first().first_name
     last_name = DjangoUser.objects.filter(username=user.username).first().last_name
     email = DjangoUser.objects.filter(username=user.username).first().email

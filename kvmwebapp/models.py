@@ -1,6 +1,7 @@
 from django.db import models
 from datetime import datetime
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_filters import rest_framework as filters
 from django.contrib.auth.models import User as DjangoUser
@@ -98,7 +99,7 @@ class CrossFilter(filters.FilterSet):
 class User(models.Model):
     username = models.CharField(max_length=40, unique=True, help_text="username")
     password = models.CharField(max_length=255, unique=False, help_text="password")
-    start_time = models.DateTimeField(default=datetime.now(), blank=True)
+    start_time = models.DateTimeField(blank=True)
     first_name = models.CharField(
         max_length=40, unique=False, help_text="first_name", blank=True
     )
