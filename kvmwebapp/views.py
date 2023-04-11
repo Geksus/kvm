@@ -1,5 +1,5 @@
 from datetime import datetime
-from time import strptime, time
+from time import strptime
 
 from django.contrib import messages
 from django.contrib.auth.models import User as DjangoUser
@@ -36,7 +36,6 @@ def filter_access():
 
 
 def create_port_list(filtered_cross_list, server_room_number):
-    start = time()
     filter_access()
     port_list = []
     for row in range(1, 10):
@@ -102,8 +101,6 @@ def create_port_list(filtered_cross_list, server_room_number):
                         port_info["username"] = "-"
                 if port_info["server_room"] == server_room_number:
                     port_list.append(port_info)
-    end = time()
-    print(end - start)
     return port_list
 
 
