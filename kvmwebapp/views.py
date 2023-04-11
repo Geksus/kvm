@@ -1,5 +1,5 @@
 from datetime import datetime
-from time import strptime
+from time import strptime, time
 
 from django.contrib import messages
 from django.contrib.auth.models import User as DjangoUser
@@ -9,7 +9,6 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.http import JsonResponse, HttpResponseRedirect
 from django.urls import reverse_lazy
-from django.utils import timezone
 from django.views.generic import (
     TemplateView,
     CreateView,
@@ -37,11 +36,12 @@ def filter_access():
 
 
 def create_port_list(filtered_cross_list, server_room_number):
+    start = time()
     filter_access()
     port_list = []
-    for row in range(1, 100):
-        for rack in range(1, 100):
-            for rack_port in range(1, 100):
+    for row in range(1, 10):
+        for rack in range(1, 20):
+            for rack_port in range(1, 3):
                 try:
                     port_info = {
                         "row": row,
@@ -102,6 +102,8 @@ def create_port_list(filtered_cross_list, server_room_number):
                         port_info["username"] = "-"
                 if port_info["server_room"] == server_room_number:
                     port_list.append(port_info)
+    end = time()
+    print(end - start)
     return port_list
 
 
@@ -139,6 +141,7 @@ class IndexView(LoginRequiredMixin, TemplateView):
         )
         num_racks = ServerRoom.objects.get(id=server_room).num_racks
         num_rows = ServerRoom.objects.get(id=server_room).num_rows
+        num_ports = ServerRoom.objects.get(id=server_room).ports_per_rack
 
         # Create a filter instance
         cross_filter = CrossFilter(self.request.GET, queryset=cross_list)
@@ -151,7 +154,8 @@ class IndexView(LoginRequiredMixin, TemplateView):
 
         context["num_rows"] = range(1, num_rows + 1)
 
-        context["num_ports"] = ServerRoom.objects.get(id=server_room).ports_per_rack
+        context["num_ports"] = range(1, num_ports + 1)
+        context["max_num_ports"] = num_ports
         context["logs"] = [
             {
                 "user": log.username,
@@ -162,7 +166,7 @@ class IndexView(LoginRequiredMixin, TemplateView):
         ]
         context[
             "current_server_room"
-        ] = server_room  # Add the current server_room to the context
+        ] = ServerRoom.objects.get(id=server_room).name  # Add the current server_room to the context
 
         return context
 

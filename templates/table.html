@@ -1,13 +1,16 @@
 {% load static %}
-<link rel="stylesheet" type="text/css" href="{% static "style.css" %}">
+    <link rel="stylesheet" type="text/css" href="{% static "style.css" %}">
 {% block table %}
+    <div class="page_title">
+        <h1>{{ current_server_room }}</h1>
+    </div>
     <div style="overflow: auto">
     <table id="port-table" class="port-table">
         <thead>
             <tr>
                 <th></th>
                 {% for rack in num_racks %}
-                    <th colspan="2">Rack {{ rack }}</th>
+                    <th colspan="{{ max_num_ports }}">Rack {{ rack }}</th>
                 {% endfor %}
             </tr>
         </thead>
@@ -16,8 +19,9 @@
                 <tr>
                     <td>{{ row }}</td>
                     {% for rack in num_racks %}
-                        <td id="port-{{ row }}-{{ rack }}-1"></td>
-                        <td id="port-{{ row }}-{{ rack }}-2"></td>
+                        {% for port in num_ports %}
+                            <td id="port-{{ row }}-{{ rack }}-{{ port }}"></td>
+                        {% endfor %}
                     {% endfor %}
                 </tr>
             {% endfor %}
@@ -38,5 +42,5 @@ td {
 <script>
     setInterval(function() {
         location.reload();
-    }, 30000);
+    }, 10000);
 </script>

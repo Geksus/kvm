@@ -202,8 +202,34 @@ body {
   text-align: left;
   padding: 2em;
   border-radius: 10px;
+  margin-bottom: 2em;
   }
 
 .page_title h1 {
   font-weight: bold;
   }
+
+.form-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.login-form {
+  width: 40%;
+  background-color: white;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.login-form h2 {
+  text-align: center;
+}
+
+.login-form .alert {
+  text-align: center;
+}
+
+
