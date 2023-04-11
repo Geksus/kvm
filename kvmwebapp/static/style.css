@@ -232,4 +232,9 @@ body {
   text-align: center;
 }
 
-
+.log-entry {
+  border-bottom: 5px solid lightslategrey;
+  padding: 5px;
+  margin: 10px;
+  border-radius: 10px;
+}
