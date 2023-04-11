@@ -187,3 +187,23 @@ body {
   font-size: 1.2em;
 }
 
+.kvm_section {
+  width: 600px;
+  padding: 1em;
+  margin: 1em;
+  border-radius: 10px;
+  background-color: #ffffff;
+  text-align: left;
+}
+
+.page_title {
+  background-color: #ffc107;
+  height: 100px;
+  text-align: left;
+  padding: 2em;
+  border-radius: 10px;
+  }
+
+.page_title h1 {
+  font-weight: bold;
+  }

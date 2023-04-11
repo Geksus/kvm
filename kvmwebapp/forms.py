@@ -5,7 +5,15 @@ from django.contrib.auth.models import User as DjangoUser
 
 
 class KVMAccessForm(forms.ModelForm):
-    # username = forms.ModelChoiceField(queryset=DjangoUser.objects.all())
+    username = forms.ModelChoiceField(queryset=DjangoUser.objects.all())
+
+    def __init__(self, *args, **kwargs):
+        super(KVMAccessForm, self).__init__(*args, **kwargs)
+        self.fields["username"].choices = [
+            (user.username, user.username)
+            for user in DjangoUser.objects.all()
+            if user not in User.objects.all()
+        ]
 
     class Meta:
         model = User

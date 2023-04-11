@@ -242,7 +242,6 @@ def user_info(request, user_id):
 
 def access_info(request, user_id):
     user = get_object_or_404(User, pk=user_id)
-    print(user.__dict__)
     duration = timezone.now() - user.start_time
     first_name = DjangoUser.objects.filter(username=user.username).first().first_name
     last_name = DjangoUser.objects.filter(username=user.username).first().last_name
@@ -417,11 +416,9 @@ def delete_kvm(*args, **kwargs):
 
 
 def login_view(request):
-    print("Login view called")  # Debug print
     if request.method == "POST":
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
-            print("Form is valid")  # Debug print
             username = form.cleaned_data.get("username")
             password = form.cleaned_data.get("password")
             user = authenticate(username=username, password=password)
@@ -471,7 +468,6 @@ class UserListView(ListView):
 
 
 def toggle_rack_port_active(request, *args, **kwargs):
-    print(request.GET)
     cross = Cross.objects.get(
         row=int(request.GET["row"]),
         rack=int(request.GET["rack"]),
