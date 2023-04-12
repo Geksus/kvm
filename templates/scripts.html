@@ -83,7 +83,7 @@ function showUserInfo(userId) {
             userInfoWindow.document.write('<p>Start time: ' + user.start_time + '</p>');
             userInfoWindow.document.write('<p>Active for: ' + user.active_for + '</p>');
             userInfoWindow.document.write('<p>Issued by: ' + user.issued_by + '</p>');
-            userInfoWindow.document.write('<button onclick="window.opener.deleteUser(' + userId + '); window.close();">Delete User</button>');
+            userInfoWindow.document.write('<button style="color: red" onclick="window.opener.deleteUser(' + userId + '); window.close();">Revoke access</button>');
             userInfoWindow.document.write('</body></html>');
         });
 }

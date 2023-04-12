@@ -7,7 +7,8 @@ from django.contrib.auth import get_user_model, authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.http import JsonResponse, HttpResponseRedirect
+from django.core.exceptions import PermissionDenied
+from django.http import JsonResponse, HttpResponseRedirect, HttpResponseForbidden
 from django.urls import reverse_lazy
 from django.views.generic import (
     TemplateView,
@@ -165,16 +166,23 @@ class IndexView(LoginRequiredMixin, TemplateView):
         return context
 
 
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
 def toggle_is_active(username):
     d_user = DjangoUser.objects.get(username=username)
     d_user.is_active = not d_user.is_active
     d_user.save()
 
+
 @login_required
-@user_passes_test(lambda u: u.is_superuser)
 def give_kvm_access(request, *args, **kwargs):
+    if not request.user.is_superuser:
+        raise PermissionDenied
     row, rack, rack_port, server_room = getting_data(request)
-    usernames = [user.username for user in DjangoUser.objects.all() if user.is_active is False]
+    used_usernames = [user.username for user in KVM_user.objects.all()]
+    usernames = [user.username for user in DjangoUser.objects.all() if user.username not in used_usernames]
+
+    # TODO: Remake this view so that the whole user is passed to the form and not just the username and repair the form
 
     if request.method == "POST":
         form = KVMAccessForm(request.POST)
@@ -244,43 +252,47 @@ def getting_data(request):
 
 def user_info(request, user_id):
     user = get_object_or_404(DjangoUser, pk=user_id)
+    if request.user.is_superuser or user.username == request.user.username:
+        user_data = {
+            "username": user.username,
+            "password": user.password,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "email": user.email,
+        }
+        return JsonResponse(user_data)
+    return JsonResponse({"error": "You are not allowed to view this page"})
 
-    user_data = {
-        "username": user.username,
-        "password": user.password,
-        "first_name": user.first_name,
-        "last_name": user.last_name,
-        "email": user.email,
-    }
-    return JsonResponse(user_data)
 
-
+@login_required
 def access_info(request, user_id):
     user = get_object_or_404(KVM_user, pk=user_id)
-    duration = datetime.now() - user.start_time
-    first_name = DjangoUser.objects.filter(username=user.username).first().first_name
-    last_name = DjangoUser.objects.filter(username=user.username).first().last_name
-    email = DjangoUser.objects.filter(username=user.username).first().email
-    # Calculate the total number of seconds
-    total_seconds = int(duration.total_seconds())
+    if request.user.is_superuser or user.username == request.user.username:
+        duration = datetime.now() - user.start_time
+        first_name = DjangoUser.objects.filter(username=user.username).first().first_name
+        last_name = DjangoUser.objects.filter(username=user.username).first().last_name
+        email = DjangoUser.objects.filter(username=user.username).first().email
+        # Calculate the total number of seconds
+        total_seconds = int(duration.total_seconds())
 
-    # Convert the duration to hours, minutes, and seconds
-    hours, remainder = divmod(total_seconds, 3600)
-    minutes, seconds = divmod(remainder, 60)
+        # Convert the duration to hours, minutes, and seconds
+        hours, remainder = divmod(total_seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
 
-    # Format the result as a string
-    active_for = f"{hours}h {minutes}m {seconds}s"
-    user_data = {
-        "username": user.username,
-        "password": user.password,
-        "start_time": user.start_time.strftime("%d-%m-%Y %H:%M:%S"),
-        "active_for": active_for,
-        "issued_by": user.issued_by.username,
-        "first_name": first_name,
-        "last_name": last_name,
-        "email": email,
-    }
-    return JsonResponse(user_data)
+        # Format the result as a string
+        active_for = f"{hours}h {minutes}m {seconds}s"
+        user_data = {
+            "username": user.username,
+            "password": user.password,
+            "start_time": user.start_time.strftime("%d-%m-%Y %H:%M:%S"),
+            "active_for": active_for,
+            "issued_by": user.issued_by.username,
+            "first_name": first_name,
+            "last_name": last_name,
+            "email": email,
+        }
+        return JsonResponse(user_data)
+    return HttpResponseForbidden("You are not allowed to view this page")
 
 
 @login_required
@@ -410,11 +422,12 @@ class ServerRoomListView(ListView):
 
 
 @login_required
-@user_passes_test(lambda u: u.is_superuser)
-def delete_server_room(*args, **kwargs):
+def delete_server_room(request, *args, **kwargs):
     server_room = get_object_or_404(ServerRoom, pk=kwargs["room_id"])
-    server_room.delete()
-    return redirect("kvmwebapp:index")
+    if request.user.is_superuser:
+        server_room.delete()
+        return redirect("kvmwebapp:index")
+    return HttpResponseForbidden("You are not allowed to view this page")
 
 
 class KVMListView(ListView):
@@ -424,11 +437,12 @@ class KVMListView(ListView):
 
 
 @login_required
-@user_passes_test(lambda u: u.is_superuser)
-def delete_kvm(*args, **kwargs):
+def delete_kvm(request, *args, **kwargs):
     kvm = get_object_or_404(KVM, pk=kwargs["kvm_id"])
-    kvm.delete()
-    return redirect("kvmwebapp:index")
+    if request.user.is_superuser:
+        kvm.delete()
+        return redirect("kvmwebapp:index")
+    return HttpResponseForbidden("You are not allowed to view this page")
 
 
 def login_view(request):
@@ -452,7 +466,6 @@ def login_view(request):
 
 
 @login_required
-@user_passes_test(lambda u: u.is_superuser)
 def register(request):
     if request.method == "POST":
         form = DjangoUserCreationForm(request.POST)
@@ -465,14 +478,16 @@ def register(request):
                 "kvmwebapp:index"
             )  # Replace 'home' with the name of the view you want to redirect to after registration
     else:
-        form = DjangoUserCreationForm()
-    return render(request, "register.html", {"form": form})
+        if request.user.is_superuser:
+            form = DjangoUserCreationForm()
+            return render(request, "register.html", {"form": form})
+        return HttpResponseForbidden("You are not allowed to view this page")
 
 
 def logout_view(request):
     logout(request)
     return redirect(
-        "kvmwebapp:index"
+        "kvmwebapp:login"
     )  # Replace 'login' with the name of the view you want to redirect to after logout
 
 
@@ -490,9 +505,11 @@ def toggle_rack_port_active(request, *args, **kwargs):
         rack_port=int(request.GET["rack_port"]),
         server_room=int(request.GET["server_room"]),
     )
-    cross.rack_port_active = not cross.rack_port_active
-    cross.save()
-    return redirect("kvmwebapp:index")
+    if request.user.is_superuser:
+        cross.rack_port_active = not cross.rack_port_active
+        cross.save()
+        return redirect("kvmwebapp:index")
+    return HttpResponseForbidden("You are not allowed to view this page")
 
 
 class SelectKVMPortView(UserPassesTestMixin, FormView):

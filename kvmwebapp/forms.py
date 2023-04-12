@@ -27,7 +27,6 @@ class KVMAccessForm(forms.ModelForm):
 
     def clean_username(self):
         list_of_users = [u.username for u in DjangoUser.objects.all()]
-        print(list_of_users)
         data = self.cleaned_data["username"]
         if data not in list_of_users:
             raise forms.ValidationError("KVM_user does not exist.")
