@@ -18,7 +18,7 @@ from django.views.generic import (
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Q
 
-from kvmwebapp.models import Cross, CrossFilter, User, ServerRoom, KVM
+from kvmwebapp.models import Cross, CrossFilter, KVM_user, ServerRoom, KVM
 from .forms import (
     KVMAccessForm,
     CreateServerRoomForm,
@@ -29,10 +29,10 @@ from .forms import (
 
 def filter_access():
     list_of_crosses = [c.user_id for c in Cross.objects.all()]
-    list_of_users = [u.id for u in User.objects.all()]
+    list_of_users = [u.id for u in KVM_user.objects.all()]
     for user in list_of_users:
         if user not in list_of_crosses:
-            User.objects.get(id=user).delete()
+            KVM_user.objects.get(id=user).delete()
 
 
 def create_port_list(filtered_cross_list, server_room_number):
@@ -126,7 +126,7 @@ class IndexView(LoginRequiredMixin, TemplateView):
         except KeyError:
             server_room = min(server_room.id for server_room in server_rooms)
 
-        logs = User.objects.filter(cross__server_room_id=server_room).order_by(
+        logs = KVM_user.objects.filter(cross__server_room_id=server_room).order_by(
             "-start_time"
         )
         # Get all Cross objects and order them by row, rack, and rack_port
@@ -256,7 +256,7 @@ def user_info(request, user_id):
 
 
 def access_info(request, user_id):
-    user = get_object_or_404(User, pk=user_id)
+    user = get_object_or_404(KVM_user, pk=user_id)
     duration = datetime.now() - user.start_time
     first_name = DjangoUser.objects.filter(username=user.username).first().first_name
     last_name = DjangoUser.objects.filter(username=user.username).first().last_name
@@ -294,7 +294,7 @@ def delete_user(request, user_id):
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def remove_access(request, user_id):
-    user = get_object_or_404(User, pk=user_id)
+    user = get_object_or_404(KVM_user, pk=user_id)
     cross = Cross.objects.get(user=user)
     cross.user = None
     cross.kvm_port_active = False
@@ -305,7 +305,7 @@ def remove_access(request, user_id):
 
 
 def logging(request):
-    logs = User.objects.all().order_by("-start_time")
+    logs = KVM_user.objects.all().order_by("-start_time")
     logs_list = [
         {
             "user": log.username,

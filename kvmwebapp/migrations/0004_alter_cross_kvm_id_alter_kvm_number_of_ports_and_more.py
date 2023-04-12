@@ -29,6 +29,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterModelTable(
             name="user",
-            table="User",
+            table="KVM_user",
         ),
     ]

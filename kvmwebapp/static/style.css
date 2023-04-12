@@ -116,7 +116,7 @@ body {
   background-color: #6c757d;
   border-color: #6c757d;
 }
-/* User list */
+/* KVM_user list */
 .user-sections {
   display: flex;
   flex-wrap: wrap;

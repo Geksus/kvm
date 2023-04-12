@@ -53,7 +53,7 @@ class Cross(models.Model):
     )
     kvm_port_active = models.BooleanField(default=False)
     user = models.OneToOneField(
-        "User", on_delete=models.SET_NULL, null=True, blank=True
+        "KVM_user", on_delete=models.SET_NULL, null=True, blank=True
     )
     server_room = models.ForeignKey(
         "ServerRoom",
@@ -65,12 +65,12 @@ class Cross(models.Model):
 
     def clean(self):
         # Validate that row is not bigger than 4, rack is not bigger than 14, and rack_port is not bigger than 2
-        if self.row > 4:
-            raise ValidationError(_("row should not be bigger than 4."))
-        if self.rack > 14:
-            raise ValidationError(_("rack should not be bigger than 14."))
-        if self.rack_port > 2:
-            raise ValidationError(_("rack_port should not be bigger than 2."))
+        if self.row > 10:
+            raise ValidationError(_("row should not be bigger than 10."))
+        if self.rack > 20:
+            raise ValidationError(_("rack should not be bigger than 20."))
+        if self.rack_port > 5:
+            raise ValidationError(_("rack_port should not be bigger than 5."))
 
         # Validate that rack_port and kvm_port are within the allowed range
         if not (1 <= self.rack_port <= 2):
@@ -96,7 +96,7 @@ class CrossFilter(filters.FilterSet):
         fields = ["row", "rack", "rack_port"]
 
 
-class User(models.Model):
+class KVM_user(models.Model):
     username = models.CharField(max_length=40, unique=True, help_text="username")
     password = models.CharField(max_length=255, unique=False, help_text="password")
     start_time = models.DateTimeField(blank=True)
@@ -114,7 +114,7 @@ class User(models.Model):
     )
 
     class Meta:
-        db_table = "User"
+        db_table = "KVM_user"
 
 
 class ServerRoom(models.Model):

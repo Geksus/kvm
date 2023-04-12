@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name="User",
+            name="KVM_user",
             fields=[
                 (
                     "id",

@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import User, ServerRoom, KVM
+from .models import KVM_user, ServerRoom, KVM
 from django.contrib.auth.models import User as DjangoUser
 
 
@@ -22,7 +22,7 @@ class SelectKVMPortForm(forms.Form):
 
 class KVMAccessForm(forms.ModelForm):
     class Meta:
-        model = User
+        model = KVM_user
         fields = ("username", "email")
 
     def clean_username(self):
@@ -30,7 +30,7 @@ class KVMAccessForm(forms.ModelForm):
         print(list_of_users)
         data = self.cleaned_data["username"]
         if data not in list_of_users:
-            raise forms.ValidationError("User does not exist.")
+            raise forms.ValidationError("KVM_user does not exist.")
         if not data.isalnum():
             raise forms.ValidationError(
                 "username should only contain alphanumeric characters."
@@ -64,7 +64,7 @@ class DjangoUserCreationForm(forms.ModelForm):
             raise forms.ValidationError(
                 "username should be between 3 and 12 characters."
             )
-        if data in [u.username for u in User.objects.all()]:
+        if data in [u.username for u in KVM_user.objects.all()]:
             raise forms.ValidationError(f"{data} already has access to KVM.")
         return data
 
