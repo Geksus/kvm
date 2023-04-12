@@ -6,11 +6,10 @@
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
 
-{% block content %}
 <div class="form-container">
   <div class="port-form">
     <h2>Select KVM Port</h2>
-    <form method="post">
+    <form method="post" id="port-form">
       {% csrf_token %}
       {{ form|crispy }}
       {% if form.errors %}
@@ -25,9 +24,39 @@
           {% endfor %}
         </div>
       {% endif %}
-      <button class="btn btn-success" type="submit">Select</button>
+      <button class="btn btn-success" type="button" onclick="submitFormAndCloseWindow()">Select</button>
     </form>
   </div>
 </div>
-{% endblock %}
+
+<script>
+function submitFormAndCloseWindow() {
+  // Prevent the default form submission behavior
+  event.preventDefault();
+
+  // Submit the form data using fetch API
+  fetch(document.getElementById("port-form").action, {
+    method: 'POST',
+    body: new FormData(document.getElementById("port-form"))
+  }).then(function(response) {
+    // Refresh the parent window
+    window.opener.location.reload();
+
+    // Close the popup window
+    window.close();
+  }).catch(function(error) {
+    console.log('Error submitting form', error);
+  });
+}
+
+// Listen for the Enter key on the form and submit the form
+document.getElementById("port-form").addEventListener("keydown", function(event) {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    document.querySelector("button[type=submit]").click();
+  }
+});
+</script>
+
+
 

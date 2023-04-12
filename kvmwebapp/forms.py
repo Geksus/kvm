@@ -14,6 +14,11 @@ class SelectKVMPortForm(forms.Form):
         },
     )
 
+    def clean_kvm_port(self):
+        data = self.cleaned_data["kvm_port"]
+        if data < 1:
+            raise forms.ValidationError("KVM port must be greater than or equal to 1.")
+        return data
 
 class KVMAccessForm(forms.ModelForm):
     class Meta:

@@ -59,13 +59,8 @@
   }
 
     function selectKVMPort(id) {
-      var win = window.open("/select_kvm_port/" + id, "_blank", "width=300,height=500");
+      var win = window.open("/select_kvm_port/" + id, "_blank", "width=500,height=500");
       win.focus();
-      var form = win.document.getElementById("kvm-port-form");
-      form.addEventListener("submit", function(event) {
-        event.preventDefault(); // prevent default form submission behavior
-        win.close();
-      });
     }
 
 
