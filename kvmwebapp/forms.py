@@ -4,6 +4,13 @@ from .models import User, ServerRoom, KVM
 from django.contrib.auth.models import User as DjangoUser
 
 
+class SelectKVMPortForm(forms.Form):
+
+    class Meta:
+        model = KVM
+        fields = ("number_of_ports",)
+
+
 class KVMAccessForm(forms.ModelForm):
     class Meta:
         model = User
@@ -76,6 +83,10 @@ class CreateServerRoomForm(forms.ModelForm):
         if data["kvm_id"] is None:
             raise forms.ValidationError(
                 "KVM ID should not be empty. If there are no KVMs, please create one first."
+            )
+        if data.get("kvm_id") and data["kvm_id"].server_room_id is not None:
+            raise forms.ValidationError(
+                "KVM is already assigned to another server room."
             )
         return data
 

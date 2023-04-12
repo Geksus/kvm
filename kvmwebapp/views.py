@@ -38,9 +38,9 @@ def filter_access():
 def create_port_list(filtered_cross_list, server_room_number):
     filter_access()
     port_list = []
-    for row in range(1, 10):
-        for rack in range(1, 20):
-            for rack_port in range(1, 3):
+    for row in range(1, ServerRoom.objects.get(id=server_room_number).num_rows + 1):
+        for rack in range(1, ServerRoom.objects.get(id=server_room_number).num_racks + 1):
+            for rack_port in range(1, ServerRoom.objects.get(id=server_room_number).ports_per_rack + 1):
                 try:
                     port_info = {
                         "row": row,
@@ -116,7 +116,6 @@ class IndexView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
         server_rooms = ServerRoom.objects.all()
         context["server_rooms"] = server_rooms
 
@@ -148,9 +147,7 @@ class IndexView(LoginRequiredMixin, TemplateView):
 
         context["port_list"] = create_port_list(filtered_cross_list, server_room)
         context["num_racks"] = range(1, num_racks + 1)
-
         context["num_rows"] = range(1, num_rows + 1)
-
         context["num_ports"] = range(1, num_ports + 1)
         context["max_num_ports"] = num_ports
         context["logs"] = [
@@ -487,5 +484,19 @@ def toggle_rack_port_active(request, *args, **kwargs):
         server_room=int(request.GET["server_room"]),
     )
     cross.rack_port_active = not cross.rack_port_active
+    cross.save()
+    return redirect("kvmwebapp:index")
+
+
+def select_kvm_port(request, *args, **kwargs):
+    cross = Cross.objects.get(
+        row=int(request.GET["row"]),
+        rack=int(request.GET["rack"]),
+        rack_port=int(request.GET["rack_port"]),
+        server_room=int(request.GET["server_room"]),
+    )
+    taken_ports = [c.kvm_port for c in Cross.objects.filter(kvm_id=cross.kvm_id)]
+    available_ports = [port for port in range(1, cross.kvm_id.number_of_ports + 1) if port not in taken_ports]
+    cross.kvm_port = int(request.GET["kvm_port"])
     cross.save()
     return redirect("kvmwebapp:index")

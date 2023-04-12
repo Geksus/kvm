@@ -31,8 +31,8 @@
                   portElement.setAttribute('onclick', 'showUserInfo(' + port.user_id + ')');
               } else {
                   portElement.style.backgroundColor = "green";
-                  portElement.classList.add("openCreateUserForm");
-                  {#portElement.setAttribute('onclick', 'openCreateUserForm(' + port.row + ', ' + port.rack + ', ' + port.rack_port + ', ' + port.server_room + ')');#}
+                  portElement.classList.add("giveAccessForm");
+                  {#portElement.setAttribute('onclick', 'giveAccessForm(' + port.row + ', ' + port.rack + ', ' + port.rack_port + ', ' + port.server_room + ')');#}
               }
           } else {
               content = "-";
@@ -51,13 +51,16 @@
     }
   }
 
-    function openCreateUserForm(row, rack, rack_port, server_room) {
+    function giveAccessForm(row, rack, rack_port, server_room) {
     var win = window.location.href = "give_access?row=" + row + "&rack=" + rack + "&rack_port=" + rack_port + "&server_room=" + server_room;
 }
 
   function togglePortState(row, rack, rack_port, server_room) {
-      {#console.log(port_id);#}
       var win = window.location.href = "/toggle_rack_port_active?row=" + row + "&rack=" + rack + "&rack_port=" + rack_port + "&server_room=" + server_room;;
+  }
+
+    function selectKVMPort(row, rack, rack_port, server_room) {
+      var win = window.location.href = "/select_kvm_port?row=" + row + "&rack=" + rack + "&rack_port=" + rack_port + "&server_room=" + server_room;;
   }
 
 // Function to open a new window with user information and a delete button
@@ -152,19 +155,24 @@ toggleButton.addEventListener('click', function() {
 });
 
 $(document).ready(function() {
-  $(".openCreateUserForm").on("click", function() {
+  $(".giveAccessForm").on("click", function() {
     var row = $(this).data("row");
     var rack = $(this).data("rack");
     var rack_port = $(this).data("rack_port");
     var server_room = $(this).data("server_room");
 
     $("#createUserBtn").off("click").on("click", function() {
-      openCreateUserForm(row, rack, rack_port, server_room);
+      giveAccessForm(row, rack, rack_port, server_room);
       $("#portModal").modal("hide");
     });
 
     $("#toggleActiveBtn").off("click").on("click", function() {
         togglePortState(row, rack, rack_port, server_room)
+        $("#portModal").modal("hide");
+    });
+
+    $("#selectKVMPort").off("click").on("click", function() {
+        selectKVMPort(row, rack, rack_port, server_room);
         $("#portModal").modal("hide");
     });
 
