@@ -4,7 +4,6 @@
   var portList = {{ port_list|safe }};
   for (var i = 0; i < portList.length; i++) {
       var port = portList[i];
-      console.log(port.port_rack_active);
       var portElement = document.getElementById("port-" + port.row + "-" + port.rack + "-" + port.rack_port);
         portElement.classList.add("portElement");
         portElement.dataset.row = port.row;
@@ -56,18 +55,25 @@
 }
 
   function togglePortState(row, rack, rack_port, server_room) {
-      var win = window.location.href = "/toggle_rack_port_active?row=" + row + "&rack=" + rack + "&rack_port=" + rack_port + "&server_room=" + server_room;;
+      var win = window.location.href = "/toggle_rack_port_active?row=" + row + "&rack=" + rack + "&rack_port=" + rack_port + "&server_room=" + server_room;
   }
 
-    function selectKVMPort(row, rack, rack_port, server_room) {
-      var win = window.location.href = "/select_kvm_port?row=" + row + "&rack=" + rack + "&rack_port=" + rack_port + "&server_room=" + server_room;;
-  }
+    function selectKVMPort(id) {
+      var win = window.open("/select_kvm_port/" + id, "_blank", "width=300,height=500");
+      win.focus();
+      var form = win.document.getElementById("kvm-port-form");
+      form.addEventListener("submit", function(event) {
+        event.preventDefault(); // prevent default form submission behavior
+        win.close();
+      });
+    }
+
+
 
 // Function to open a new window with user information and a delete button
 function showUserInfo(userId) {
     // Fetch the user information from your server
     fetch('/access_info/' + userId)
-        {#console.log('user_info/' + userId)#}
         .then(response => response.json())
         .then(user => {
             // Create a new window with user information and a delete button
@@ -160,6 +166,7 @@ $(document).ready(function() {
     var rack = $(this).data("rack");
     var rack_port = $(this).data("rack_port");
     var server_room = $(this).data("server_room");
+    var id = $(this).data("id");
 
     $("#createUserBtn").off("click").on("click", function() {
       giveAccessForm(row, rack, rack_port, server_room);
@@ -172,7 +179,7 @@ $(document).ready(function() {
     });
 
     $("#selectKVMPort").off("click").on("click", function() {
-        selectKVMPort(row, rack, rack_port, server_room);
+        selectKVMPort(id);
         $("#portModal").modal("hide");
     });
 
@@ -202,6 +209,7 @@ $(document).ready(function() {
     }
   });
 });
+
 
 </script>
 {% endblock %}

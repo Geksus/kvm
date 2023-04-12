@@ -13,7 +13,7 @@ from django.views.generic import (
     TemplateView,
     CreateView,
     ListView,
-    UpdateView,
+    UpdateView, FormView,
 )
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Q
@@ -23,7 +23,7 @@ from .forms import (
     KVMAccessForm,
     CreateServerRoomForm,
     CreateKVMForm,
-    DjangoUserCreationForm,
+    DjangoUserCreationForm, SelectKVMPortForm,
 )
 
 
@@ -488,15 +488,27 @@ def toggle_rack_port_active(request, *args, **kwargs):
     return redirect("kvmwebapp:index")
 
 
-def select_kvm_port(request, *args, **kwargs):
-    cross = Cross.objects.get(
-        row=int(request.GET["row"]),
-        rack=int(request.GET["rack"]),
-        rack_port=int(request.GET["rack_port"]),
-        server_room=int(request.GET["server_room"]),
-    )
-    taken_ports = [c.kvm_port for c in Cross.objects.filter(kvm_id=cross.kvm_id)]
-    available_ports = [port for port in range(1, cross.kvm_id.number_of_ports + 1) if port not in taken_ports]
-    cross.kvm_port = int(request.GET["kvm_port"])
-    cross.save()
-    return redirect("kvmwebapp:index")
+class SelectKVMPortView(UserPassesTestMixin, FormView):
+    template_name = "select_kvm_port.html"
+    form_class = SelectKVMPortForm
+    success_url = reverse_lazy("kvmwebapp:index")
+
+    def test_func(self):
+        return self.request.user.is_superuser
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        cross_id = self.kwargs["cross_id"]
+        cross = get_object_or_404(Cross, id=cross_id)
+        context["cross"] = cross
+        context["kvm_ports"] = range(1, cross.kvm_id.number_of_ports + 1)
+        return context
+
+    def form_valid(self, form):
+        cross_id = self.kwargs["cross_id"]
+        cross = get_object_or_404(Cross, id=cross_id)
+        kvm_port = form.cleaned_data["kvm_port"]
+        cross.kvm_port = kvm_port
+        cross.kvm_port_active = True
+        cross.save()
+        return super().form_valid(form)

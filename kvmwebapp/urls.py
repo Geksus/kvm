@@ -19,7 +19,7 @@ from kvmwebapp.views import (
     remove_access,
     UpdateServerRoom,
     toggle_rack_port_active,
-    select_kvm_port
+    SelectKVMPortView
 )
 
 app_name = "kvmwebapp"
@@ -47,7 +47,6 @@ urlpatterns = [
     path("accounts/login/", login_view, name="login"),
     path("register/", register, name="register"),
     path("logout/", logout_view, name="logout"),
-    path("select_kvm_port/", select_kvm_port, name="select_kvm_port"),
     path("user_list/", UserListView.as_view(), name="user_list"),
     path("access_info/<int:user_id>", access_info, name="access_info"),
     path("remove_access/<int:user_id>", remove_access, name="remove_access"),
@@ -56,4 +55,9 @@ urlpatterns = [
         toggle_rack_port_active,
         name="toggle_rack_port_active",
     ),
+    path(
+        "select_kvm_port/<int:cross_id>/",
+        SelectKVMPortView.as_view(),
+        name="select_kvm_port",
+        ),
 ]

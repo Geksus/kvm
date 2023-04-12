@@ -5,10 +5,14 @@ from django.contrib.auth.models import User as DjangoUser
 
 
 class SelectKVMPortForm(forms.Form):
-
-    class Meta:
-        model = KVM
-        fields = ("number_of_ports",)
+    kvm_port = forms.IntegerField(
+        label="KVM Port",
+        min_value=1,
+        error_messages={
+            "required": "Please select a KVM port.",
+            "min_value": "KVM port must be greater than or equal to 1.",
+        },
+    )
 
 
 class KVMAccessForm(forms.ModelForm):
