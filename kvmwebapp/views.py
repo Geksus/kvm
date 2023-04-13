@@ -172,9 +172,7 @@ def give_kvm_access(request, *args, **kwargs):
         raise PermissionDenied
     row, rack, rack_port, server_room = getting_data(request)
     used_usernames = [user.username for user in KVM_user.objects.all()]
-    usernames = [user.username for user in DjangoUser.objects.all() if user.username not in used_usernames]
-
-    # TODO: Remake this view so that the whole user is passed to the form and not just the username and repair the form
+    usernames = [user for user in DjangoUser.objects.all() if user.username not in used_usernames]
 
     if request.method == "POST":
         form = KVMAccessForm(request.POST)
@@ -192,7 +190,7 @@ def give_kvm_access(request, *args, **kwargs):
             user.password = User.objects.make_random_password(length=10)
             first_name = user.first_name
             last_name = user.last_name
-            email = user.email
+            user.email = DjangoUser.objects.get(username=user.username).email
             start_time = user.start_time
             user.issued_by = request.user
             user.save()
@@ -203,6 +201,7 @@ def give_kvm_access(request, *args, **kwargs):
                 ).kvm_id
                 cross.kvm_port_active = True
                 cross.save()
+                send_email(user.email)
             return JsonResponse(
                 {
                     "success": True,
@@ -210,7 +209,7 @@ def give_kvm_access(request, *args, **kwargs):
                     "password": user.password,
                     "first_name": first_name,
                     "last_name": last_name,
-                    "email": email,
+                    "email": user.email,
                     "start_time": start_time.strftime("%d-%m-%Y %H:%M:%S"),
                     "issued_by": request.user.username,
                 }
