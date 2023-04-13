@@ -167,14 +167,6 @@ class IndexView(LoginRequiredMixin, TemplateView):
 
 
 @login_required
-@user_passes_test(lambda u: u.is_superuser)
-def toggle_is_active(username):
-    d_user = DjangoUser.objects.get(username=username)
-    d_user.is_active = not d_user.is_active
-    d_user.save()
-
-
-@login_required
 def give_kvm_access(request, *args, **kwargs):
     if not request.user.is_superuser:
         raise PermissionDenied
@@ -204,7 +196,6 @@ def give_kvm_access(request, *args, **kwargs):
             start_time = user.start_time
             user.issued_by = request.user
             user.save()
-            toggle_is_active(user.username)
             if cross is not None:
                 cross.user_id = user.id
                 cross.kvm_id = ServerRoom.objects.get(
@@ -312,7 +303,6 @@ def remove_access(request, user_id):
     cross.kvm_port_active = False
     cross.save()
     user.delete()
-    toggle_is_active(user.username)
     return JsonResponse({"success": True})
 
 
