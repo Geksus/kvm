@@ -12,7 +12,7 @@
 </div>
 {% for room in server_rooms %}
     <div class="kvm_section">
-        <p class="log-entry">{{ room.name }}: Rows {{ room.num_rows }} | Racks: {{ room.num_racks }} | Ports per rack: {{ room.ports_per_rack }}</p>
+        <p class="log-entry">{{ room.name }}: Rows {{ room.num_rows }} | Racks: {{ room.num_racks }} | Ports per rack: {{ room.ports_per_rack }} | KVM: {{ room.kvm_id.short_name }}</p>
         <button class="btn btn-warning" onclick="confirmUpdate('/update_sroom/{{ room.id }}')">Update room</button>
         <button class="btn btn-danger" onclick="confirmDeletion('/delete_sroom/{{ room.id }}')">Delete room</button><br>
     </div>

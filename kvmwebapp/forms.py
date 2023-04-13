@@ -63,8 +63,8 @@ class DjangoUserCreationForm(forms.ModelForm):
             raise forms.ValidationError(
                 "username should be between 3 and 12 characters."
             )
-        if data in [u.username for u in KVM_user.objects.all()]:
-            raise forms.ValidationError(f"{data} already has access to KVM.")
+        if data in [u.username for u in DjangoUser.objects.all()]:
+            raise forms.ValidationError(f"{data} already exists.")
         return data
 
 

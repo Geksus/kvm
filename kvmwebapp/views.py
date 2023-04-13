@@ -26,10 +26,11 @@ from .forms import (
     CreateKVMForm,
     DjangoUserCreationForm, SelectKVMPortForm,
 )
+from .logs import user_log, action_log
 
 
 def filter_access():
-    list_of_crosses = [c.user_id for c in Cross.objects.all()]
+    list_of_crosses = [c.user_id for c in Cross.objects.all() if c.user_id is not None]
     list_of_users = [u.id for u in KVM_user.objects.all()]
     for user in list_of_users:
         if user not in list_of_crosses:
@@ -155,7 +156,7 @@ class IndexView(LoginRequiredMixin, TemplateView):
             {
                 "user": log.username,
                 "start_time": log.start_time.strftime("%d-%m-%Y %H:%M:%S"),
-                "KVM": Cross.objects.get(user=log.id).kvm_id.short_name,
+                "KVM": Cross.objects.get(user=log.id).server_room.kvm_id.short_name,
             }
             for log in logs
         ]
@@ -201,7 +202,9 @@ def give_kvm_access(request, *args, **kwargs):
                 ).kvm_id
                 cross.kvm_port_active = True
                 cross.save()
-                send_email(user.email)
+                action_description = f"gave access to {user.username} at {cross.server_room.name}, cross id - {cross.id}\n"
+                user_log(request.user.username, action_description)
+                action_log(request.user.username, action_description)
             return JsonResponse(
                 {
                     "success": True,
@@ -250,7 +253,13 @@ def user_info(request, user_id):
             "last_name": user.last_name,
             "email": user.email,
         }
+        action_description = f"viewed {user.username} info\n"
+        user_log(request.user.username, action_description)
+        action_log(request.user.username, action_description)
         return JsonResponse(user_data)
+    action_description = f"tried to view {user.username} info\n"
+    user_log(request.user.username, action_description)
+    action_log(request.user.username, action_description)
     return JsonResponse({"error": "You are not allowed to view this page"})
 
 
@@ -281,7 +290,13 @@ def access_info(request, user_id):
             "last_name": last_name,
             "email": email,
         }
+        action_description = f"viewed {user.username} access info\n"
+        user_log(request.user.username, action_description)
+        action_log(request.user.username, action_description)
         return JsonResponse(user_data)
+    action_description = f"tried to view {user.username} access info\n"
+    user_log(request.user.username, action_description)
+    action_log(request.user.username, action_description)
     return HttpResponseForbidden("You are not allowed to view this page")
 
 
@@ -289,7 +304,12 @@ def access_info(request, user_id):
 @user_passes_test(lambda u: u.is_superuser)
 def delete_user(request, user_id):
     user = get_object_or_404(DjangoUser, pk=user_id)
+    kvm_user = get_object_or_404(KVM_user, username=user.username)
     user.delete()
+    kvm_user.delete()
+    action_description = f"deleted {user.username}\n"
+    user_log(request.user.username, action_description)
+    action_log(request.user.username, action_description)
     return JsonResponse({"success": True})
 
 
@@ -302,6 +322,9 @@ def remove_access(request, user_id):
     cross.kvm_port_active = False
     cross.save()
     user.delete()
+    action_description = f"removed {user.username} access\n"
+    user_log(request.user.username, action_description)
+    action_log(request.user.username, action_description)
     return JsonResponse({"success": True})
 
 
@@ -348,6 +371,9 @@ class CreateServerRoom(UserPassesTestMixin, CreateView):
         kvm = KVM.objects.get(id=self.object.kvm_id.id)
         kvm.server_room_id = self.object
         kvm.save()
+        action_description = f"created server room - {self.object.name}\n"
+        user_log(self.request.user.username, action_description)
+        action_log(self.request.user.username, action_description)
         return response
 
 
@@ -390,6 +416,9 @@ class UpdateServerRoom(UserPassesTestMixin, UpdateView):
         self.object = form.save(commit=False)
         self.update_crosses()
         self.object.save()
+        action_description = f"updated Server Room - {self.object.name}\n"
+        user_log(self.request.user.username, action_description)
+        action_log(self.request.user.username, action_description)
         return HttpResponseRedirect(self.get_success_url())
 
 
@@ -415,7 +444,13 @@ def delete_server_room(request, *args, **kwargs):
     server_room = get_object_or_404(ServerRoom, pk=kwargs["room_id"])
     if request.user.is_superuser:
         server_room.delete()
+        action_description = f"deleted Server Room - {server_room.name}\n"
+        user_log(request.user.username, action_description)
+        action_log(request.user.username, action_description)
         return redirect("kvmwebapp:index")
+    action_description = f"tried to delete Server Room - {server_room.name}\n"
+    user_log(request.user.username, action_description)
+    action_log(request.user.username, action_description)
     return HttpResponseForbidden("You are not allowed to view this page")
 
 
@@ -430,7 +465,13 @@ def delete_kvm(request, *args, **kwargs):
     kvm = get_object_or_404(KVM, pk=kwargs["kvm_id"])
     if request.user.is_superuser:
         kvm.delete()
+        action_description = f"deleted KVM - {kvm.short_name}\n"
+        user_log(request.user.username, action_description)
+        action_log(request.user.username, action_description)
         return redirect("kvmwebapp:index")
+    action_description = f"tried to delete KVM - {kvm.short_name}\n"
+    user_log(request.user.username, action_description)
+    action_log(request.user.username, action_description)
     return HttpResponseForbidden("You are not allowed to view this page")
 
 
@@ -442,9 +483,15 @@ def login_view(request):
             password = form.cleaned_data.get("password")
             user = authenticate(username=username, password=password)
             if user is not None:
+                action_description = f"logged in\n"
+                user_log(user.username, action_description)
+                action_log(user.username, action_description)
                 login(request, user)
                 return redirect("kvmwebapp:index")
             else:
+                action_description = f"tried to log in\n"
+                user_log(username, action_description)
+                action_log(username, action_description)
                 messages.error(request, "Invalid username or password.")
                 print("Form errors:", form.errors)
         else:
@@ -462,6 +509,9 @@ def register(request):
             user = form.save(commit=False)
             user.set_password(form.cleaned_data["password"])
             user.save()
+            action_description = f"registered user - {user.username}\n"
+            user_log(request.user.username, action_description)
+            action_log(request.user.username, action_description)
             # login(request, user)
             return redirect(
                 "kvmwebapp:index"
@@ -474,6 +524,9 @@ def register(request):
 
 
 def logout_view(request):
+    action_description = f"logged out\n"
+    user_log(request.user.username, action_description)
+    action_log(request.user.username, action_description)
     logout(request)
     return redirect(
         "kvmwebapp:login"
@@ -487,6 +540,8 @@ class UserListView(ListView):
     context_object_name = "user_list"
 
 
+from django.urls import reverse
+
 def toggle_rack_port_active(request, *args, **kwargs):
     cross = Cross.objects.get(
         row=int(request.GET["row"]),
@@ -497,8 +552,16 @@ def toggle_rack_port_active(request, *args, **kwargs):
     if request.user.is_superuser:
         cross.rack_port_active = not cross.rack_port_active
         cross.save()
-        return redirect("kvmwebapp:index")
+        action_description = f"toggled rack port active to {cross.rack_port_active} - {cross}\n"
+        user_log(request.user.username, action_description)
+        action_log(request.user.username, action_description)
+        server_room_url = reverse("kvmwebapp:server_room", args=[cross.server_room.id])
+        return redirect(server_room_url)
+    action_description = f"tried to toggle rack port active to {cross.rack_port_active} - {cross}\n"
+    user_log(request.user.username, action_description)
+    action_log(request.user.username, action_description)
     return HttpResponseForbidden("You are not allowed to view this page")
+
 
 
 class SelectKVMPortView(UserPassesTestMixin, FormView):
@@ -524,4 +587,7 @@ class SelectKVMPortView(UserPassesTestMixin, FormView):
         cross.kvm_port = kvm_port
         cross.kvm_port_active = True
         cross.save()
+        action_description = f"selected KVM port number {cross.kvm_port} - {cross}\n"
+        user_log(self.request.user.username, action_description)
+        action_log(self.request.user.username, action_description)
         return super().form_valid(form)
