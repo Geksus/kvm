@@ -19,7 +19,7 @@ from kvmwebapp.views import (
     remove_access,
     UpdateServerRoom,
     toggle_rack_port_active,
-    SelectKVMPortView
+    SelectKVMPortView,
 )
 
 app_name = "kvmwebapp"
@@ -59,5 +59,5 @@ urlpatterns = [
         "select_kvm_port/<int:cross_id>/",
         SelectKVMPortView.as_view(),
         name="select_kvm_port",
-        ),
+    ),
 ]

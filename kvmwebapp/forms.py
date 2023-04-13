@@ -20,6 +20,7 @@ class SelectKVMPortForm(forms.Form):
             raise forms.ValidationError("KVM port must be greater than or equal to 1.")
         return data
 
+
 class KVMAccessForm(forms.ModelForm):
     class Meta:
         model = KVM_user
@@ -92,7 +93,11 @@ class CreateServerRoomForm(forms.ModelForm):
             raise forms.ValidationError(
                 "KVM ID should not be empty. If there are no KVMs, please create one first."
             )
-        if data.get("kvm_id") and data["kvm_id"].server_room_id is not None:
+        if (
+            data.get("kvm_id")
+            and data["kvm_id"].server_room_id is not None
+            and data["kvm_id"].server_room_id != self.instance.id
+        ):
             raise forms.ValidationError(
                 "KVM is already assigned to another server room."
             )

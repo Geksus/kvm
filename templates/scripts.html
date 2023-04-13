@@ -29,13 +29,13 @@
                   }
                   portElement.setAttribute('onclick', 'showUserInfo(' + port.user_id + ')');
               } else {
-                  portElement.style.backgroundColor = "green";
+                  portElement.style.backgroundColor = "lightgreen";
                   portElement.classList.add("giveAccessForm");
                   {#portElement.setAttribute('onclick', 'giveAccessForm(' + port.row + ', ' + port.rack + ', ' + port.rack_port + ', ' + port.server_room + ')');#}
               }
           } else {
               content = "-";
-              portElement.style.backgroundColor = "green";
+              portElement.style.backgroundColor = "lightgreen";
           }
           portElement.innerHTML = content;
       } else {
@@ -83,10 +83,35 @@ function showUserInfo(userId) {
             userInfoWindow.document.write('<p>Start time: ' + user.start_time + '</p>');
             userInfoWindow.document.write('<p>Active for: ' + user.active_for + '</p>');
             userInfoWindow.document.write('<p>Issued by: ' + user.issued_by + '</p>');
+            userInfoWindow.document.write('<button id="copyButton">Copy</button><br><br>');
             userInfoWindow.document.write('<button style="color: red" onclick="window.opener.deleteUser(' + userId + '); window.close();">Revoke access</button>');
             userInfoWindow.document.write('</body></html>');
+
+            // Add click event listener to the "Copy" button
+            var copyButton = userInfoWindow.document.getElementById('copyButton');
+            copyButton.addEventListener('click', function() {
+                // Create a new textarea element and set its value to the user information
+                var textArea = userInfoWindow.document.createElement('textarea');
+                textArea.value = 'Username: ' + user.username + '\n' +
+                                  'Password: ' + user.password + '\n' +
+                                  'First name: ' + user.first_name + '\n' +
+                                  'Last name: ' + user.last_name + '\n' +
+                                  'Email: ' + user.email + '\n' +
+                                  'Start time: ' + user.start_time + '\n' +
+                                  'Active for: ' + user.active_for + '\n' +
+                                  'Issued by: ' + user.issued_by;
+
+                // Append the textarea element to the document and select its contents
+                userInfoWindow.document.body.appendChild(textArea);
+                textArea.select();
+
+                // Copy the selected text to the clipboard and remove the textarea element
+                userInfoWindow.document.execCommand('copy');
+                userInfoWindow.document.body.removeChild(textArea);
+            });
         });
 }
+
 
 function getCookie(name) {
     let cookieValue = null;

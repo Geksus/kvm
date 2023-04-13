@@ -5,6 +5,10 @@
 {% load static %}
     <link rel="stylesheet" type="text/css" href="{% static "style.css" %}">
 
+<head>
+    <link rel="icon" href="{% static "network.gif" %}"/>
+    <title>{% block title %}Server room list{% endblock %}</title>
+</head>
 
 <div style="height: 70px;"></div> <!-- Placeholder to push content down and avoid being covered by the navbar -->
 <div class="page_title">

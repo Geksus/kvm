@@ -14,7 +14,8 @@ from django.views.generic import (
     TemplateView,
     CreateView,
     ListView,
-    UpdateView, FormView,
+    UpdateView,
+    FormView,
 )
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Q
@@ -24,7 +25,8 @@ from .forms import (
     KVMAccessForm,
     CreateServerRoomForm,
     CreateKVMForm,
-    DjangoUserCreationForm, SelectKVMPortForm,
+    DjangoUserCreationForm,
+    SelectKVMPortForm,
 )
 from .logs import user_log, action_log
 
@@ -41,8 +43,12 @@ def create_port_list(filtered_cross_list, server_room_number):
     filter_access()
     port_list = []
     for row in range(1, ServerRoom.objects.get(id=server_room_number).num_rows + 1):
-        for rack in range(1, ServerRoom.objects.get(id=server_room_number).num_racks + 1):
-            for rack_port in range(1, ServerRoom.objects.get(id=server_room_number).ports_per_rack + 1):
+        for rack in range(
+            1, ServerRoom.objects.get(id=server_room_number).num_racks + 1
+        ):
+            for rack_port in range(
+                1, ServerRoom.objects.get(id=server_room_number).ports_per_rack + 1
+            ):
                 try:
                     port_info = {
                         "row": row,
@@ -160,9 +166,9 @@ class IndexView(LoginRequiredMixin, TemplateView):
             }
             for log in logs
         ]
-        context[
-            "current_server_room"
-        ] = ServerRoom.objects.get(id=server_room).name  # Add the current server_room to the context
+        context["current_server_room"] = ServerRoom.objects.get(
+            id=server_room
+        ).name  # Add the current server_room to the context
 
         return context
 
@@ -173,7 +179,9 @@ def give_kvm_access(request, *args, **kwargs):
         raise PermissionDenied
     row, rack, rack_port, server_room = getting_data(request)
     used_usernames = [user.username for user in KVM_user.objects.all()]
-    usernames = [user for user in DjangoUser.objects.all() if user.username not in used_usernames]
+    usernames = [
+        user for user in DjangoUser.objects.all() if user.username not in used_usernames
+    ]
 
     if request.method == "POST":
         form = KVMAccessForm(request.POST)
@@ -268,7 +276,9 @@ def access_info(request, user_id):
     user = get_object_or_404(KVM_user, pk=user_id)
     if request.user.is_superuser or user.username == request.user.username:
         duration = datetime.now() - user.start_time
-        first_name = DjangoUser.objects.filter(username=user.username).first().first_name
+        first_name = (
+            DjangoUser.objects.filter(username=user.username).first().first_name
+        )
         last_name = DjangoUser.objects.filter(username=user.username).first().last_name
         email = DjangoUser.objects.filter(username=user.username).first().email
         # Calculate the total number of seconds
@@ -542,6 +552,7 @@ class UserListView(ListView):
 
 from django.urls import reverse
 
+
 def toggle_rack_port_active(request, *args, **kwargs):
     cross = Cross.objects.get(
         row=int(request.GET["row"]),
@@ -552,16 +563,19 @@ def toggle_rack_port_active(request, *args, **kwargs):
     if request.user.is_superuser:
         cross.rack_port_active = not cross.rack_port_active
         cross.save()
-        action_description = f"toggled rack port active to {cross.rack_port_active} - {cross}\n"
+        action_description = (
+            f"toggled rack port active to {cross.rack_port_active} - {cross}\n"
+        )
         user_log(request.user.username, action_description)
         action_log(request.user.username, action_description)
         server_room_url = reverse("kvmwebapp:server_room", args=[cross.server_room.id])
         return redirect(server_room_url)
-    action_description = f"tried to toggle rack port active to {cross.rack_port_active} - {cross}\n"
+    action_description = (
+        f"tried to toggle rack port active to {cross.rack_port_active} - {cross}\n"
+    )
     user_log(request.user.username, action_description)
     action_log(request.user.username, action_description)
     return HttpResponseForbidden("You are not allowed to view this page")
-
 
 
 class SelectKVMPortView(UserPassesTestMixin, FormView):

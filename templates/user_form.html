@@ -1,9 +1,14 @@
+{% load static %}
 {% block content %}
   <!-- Button to trigger the modal -->
   <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createUserModal">
     Create User
   </button>
 
+<head>
+    <link rel="icon" href="{% static "network.gif" %}"/>
+    <title>{% block title %}Create user{% endblock %}</title>
+</head>
   <!-- Create User Modal -->
   <div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
     <div class="modal-dialog">
