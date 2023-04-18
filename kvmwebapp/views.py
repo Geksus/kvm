@@ -460,8 +460,8 @@ def delete_server_room(request, *args, **kwargs):
         return redirect("kvmwebapp:index")
     action_description = f"tried to delete Server Room - {server_room.name}\n"
     user_log(request.user.username, action_description)
-    action_log(request.user.username, action_description)
-    return HttpResponseForbidden("You are not allowed to view this page")
+    messages.error(request, 'Permission denied.')
+    return redirect('kvmwebapp:sroom_list')
 
 
 class KVMListView(ListView):
@@ -482,7 +482,8 @@ def delete_kvm(request, *args, **kwargs):
     action_description = f"tried to delete KVM - {kvm.short_name}\n"
     user_log(request.user.username, action_description)
     action_log(request.user.username, action_description)
-    return HttpResponseForbidden("You are not allowed to view this page")
+    messages.error(request, 'Permission denied.')
+    return redirect('kvmwebapp:kvm_list')
 
 
 def login_view(request):
@@ -578,7 +579,8 @@ def toggle_rack_port_active(request, *args, **kwargs):
     )
     user_log(request.user.username, action_description)
     action_log(request.user.username, action_description)
-    return HttpResponseForbidden("You are not allowed to view this page")
+    messages.error(request, 'Permission denied.')
+    return redirect('kvmwebapp:index')
 
 
 class SelectKVMPortView(UserPassesTestMixin, FormView):
@@ -595,6 +597,7 @@ class SelectKVMPortView(UserPassesTestMixin, FormView):
         cross = get_object_or_404(Cross, id=cross_id)
         context["cross"] = cross
         context["kvm_ports"] = range(1, cross.kvm_id.number_of_ports + 1)
+        context["is_superuser"] = self.request.user.is_superuser
         return context
 
     def form_valid(self, form):
