@@ -525,7 +525,7 @@ def register(request):
             action_log(request.user.username, action_description)
             # login(request, user)
             return redirect(
-                "kvmwebapp:index"
+                "kvmwebapp:user_list"
             )  # Replace 'home' with the name of the view you want to redirect to after registration
         else:
             print("Form errors:", form.errors)
@@ -534,7 +534,8 @@ def register(request):
         if request.user.is_superuser:
             form = DjangoUserCreationForm()
             return render(request, "register.html", {"form": form})
-        return HttpResponseForbidden("You are not allowed to view this page")
+        messages.error(request, 'Permission denied.')
+        return redirect('kvmwebapp:index')
 
 
 def logout_view(request):
