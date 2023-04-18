@@ -28,7 +28,7 @@ from .forms import (
     DjangoUserCreationForm,
     SelectKVMPortForm,
 )
-from .logs import user_log, action_log
+from .logs import action_log
 
 
 def filter_access():
@@ -175,7 +175,7 @@ class IndexView(LoginRequiredMixin, TemplateView):
 
 @login_required
 def give_kvm_access(request, *args, **kwargs):
-    if not request.user.is_superuser:
+    if not request.user.is_superuser or request.user.is_staff:
         raise PermissionDenied
     row, rack, rack_port, server_room = getting_data(request)
     used_usernames = [user.username for user in KVM_user.objects.all()]
@@ -211,7 +211,6 @@ def give_kvm_access(request, *args, **kwargs):
                 cross.kvm_port_active = True
                 cross.save()
                 action_description = f"gave access to {user.username} at {cross.server_room.name}, cross id - {cross.id}\n"
-                user_log(request.user.username, action_description)
                 action_log(request.user.username, action_description)
             return JsonResponse(
                 {
@@ -253,7 +252,7 @@ def getting_data(request):
 
 def user_info(request, user_id):
     user = get_object_or_404(DjangoUser, pk=user_id)
-    if request.user.is_superuser or user.username == request.user.username:
+    if request.user.is_superuser or request.user.is_staff:
         user_data = {
             "username": user.username,
             "password": user.password,
@@ -262,11 +261,9 @@ def user_info(request, user_id):
             "email": user.email,
         }
         action_description = f"viewed {user.username} info\n"
-        user_log(request.user.username, action_description)
         action_log(request.user.username, action_description)
         return JsonResponse(user_data)
     action_description = f"tried to view {user.username} info\n"
-    user_log(request.user.username, action_description)
     action_log(request.user.username, action_description)
     return JsonResponse({"error": "You are not allowed to view this page"})
 
@@ -274,7 +271,7 @@ def user_info(request, user_id):
 @login_required
 def access_info(request, user_id):
     user = get_object_or_404(KVM_user, pk=user_id)
-    if request.user.is_superuser or user.username == request.user.username:
+    if request.user.is_superuser or request.user.is_staff:
         duration = datetime.now() - user.start_time
         first_name = (
             DjangoUser.objects.filter(username=user.username).first().first_name
@@ -301,11 +298,9 @@ def access_info(request, user_id):
             "email": email,
         }
         action_description = f"viewed {user.username} access info\n"
-        user_log(request.user.username, action_description)
         action_log(request.user.username, action_description)
         return JsonResponse(user_data)
     action_description = f"tried to view {user.username} access info\n"
-    user_log(request.user.username, action_description)
     action_log(request.user.username, action_description)
     return HttpResponseForbidden("You are not allowed to view this page")
 
@@ -318,13 +313,12 @@ def delete_user(request, user_id):
     user.delete()
     kvm_user.delete()
     action_description = f"deleted {user.username}\n"
-    user_log(request.user.username, action_description)
     action_log(request.user.username, action_description)
     return JsonResponse({"success": True})
 
 
 @login_required
-@user_passes_test(lambda u: u.is_superuser)
+@user_passes_test(lambda u: u.is_superuser or u.is_staff)
 def remove_access(request, user_id):
     user = get_object_or_404(KVM_user, pk=user_id)
     cross = Cross.objects.get(user=user)
@@ -333,7 +327,6 @@ def remove_access(request, user_id):
     cross.save()
     user.delete()
     action_description = f"removed {user.username} access\n"
-    user_log(request.user.username, action_description)
     action_log(request.user.username, action_description)
     return JsonResponse({"success": True})
 
@@ -382,7 +375,6 @@ class CreateServerRoom(UserPassesTestMixin, CreateView):
         kvm.server_room_id = self.object
         kvm.save()
         action_description = f"created server room - {self.object.name}\n"
-        user_log(self.request.user.username, action_description)
         action_log(self.request.user.username, action_description)
         return response
 
@@ -427,7 +419,6 @@ class UpdateServerRoom(UserPassesTestMixin, UpdateView):
         self.update_crosses()
         self.object.save()
         action_description = f"updated Server Room - {self.object.name}\n"
-        user_log(self.request.user.username, action_description)
         action_log(self.request.user.username, action_description)
         return HttpResponseRedirect(self.get_success_url())
 
@@ -440,10 +431,10 @@ class CreateKVM(UserPassesTestMixin, CreateView):
     success_url = reverse_lazy("kvmwebapp:index")
 
     def test_func(self):
-        return self.request.user.is_superuser
+        return self.request.user.is_superuser or self.request.user.is_staff
 
 
-class ServerRoomListView(ListView):
+class ServerRoomListView(LoginRequiredMixin, ListView):
     model = ServerRoom
     template_name = "serverroom_list.html"
     context_object_name = "server_rooms"
@@ -458,16 +449,14 @@ def delete_server_room(request, *args, **kwargs):
     if request.user.is_superuser:
         server_room.delete()
         action_description = f"deleted Server Room - {server_room.name}\n"
-        user_log(request.user.username, action_description)
         action_log(request.user.username, action_description)
         return redirect("kvmwebapp:index")
     action_description = f"tried to delete Server Room - {server_room.name}\n"
-    user_log(request.user.username, action_description)
     messages.error(request, 'Permission denied.')
     return redirect('kvmwebapp:sroom_list')
 
 
-class KVMListView(ListView):
+class KVMListView(LoginRequiredMixin, ListView):
     model = KVM
     template_name = "kvm_list.html"
     context_object_name = "kvm_list"
@@ -476,14 +465,12 @@ class KVMListView(ListView):
 @login_required
 def delete_kvm(request, *args, **kwargs):
     kvm = get_object_or_404(KVM, pk=kwargs["kvm_id"])
-    if request.user.is_superuser:
+    if request.user.is_superuser or request.user.is_staff:
         kvm.delete()
         action_description = f"deleted KVM - {kvm.short_name}\n"
-        user_log(request.user.username, action_description)
         action_log(request.user.username, action_description)
         return redirect("kvmwebapp:index")
     action_description = f"tried to delete KVM - {kvm.short_name}\n"
-    user_log(request.user.username, action_description)
     action_log(request.user.username, action_description)
     messages.error(request, 'Permission denied.')
     return redirect('kvmwebapp:kvm_list')
@@ -498,13 +485,11 @@ def login_view(request):
             user = authenticate(username=username, password=password)
             if user is not None:
                 action_description = f"logged in\n"
-                user_log(user.username, action_description)
                 action_log(user.username, action_description)
                 login(request, user)
                 return redirect("kvmwebapp:index")
             else:
                 action_description = f"tried to log in\n"
-                user_log(username, action_description)
                 action_log(username, action_description)
                 messages.error(request, "Invalid username or password.")
                 print("Form errors:", form.errors)
@@ -516,6 +501,7 @@ def login_view(request):
 
 
 @login_required
+@user_passes_test(lambda u: u.is_superuser)
 def register(request):
     if request.method == "POST":
         form = DjangoUserCreationForm(request.POST)
@@ -524,7 +510,6 @@ def register(request):
             user.set_password(form.cleaned_data["password"])
             user.save()
             action_description = f"registered user - {user.username}\n"
-            user_log(request.user.username, action_description)
             action_log(request.user.username, action_description)
             # login(request, user)
             return redirect(
@@ -543,7 +528,6 @@ def register(request):
 
 def logout_view(request):
     action_description = f"logged out\n"
-    user_log(request.user.username, action_description)
     action_log(request.user.username, action_description)
     logout(request)
     return redirect(
@@ -551,7 +535,7 @@ def logout_view(request):
     )  # Replace 'login' with the name of the view you want to redirect to after logout
 
 
-class UserListView(ListView):
+class UserListView(LoginRequiredMixin, ListView):
     model = DjangoUser
     ordering = ["username"]
     template_name = "user_list.html"
@@ -574,14 +558,12 @@ def toggle_rack_port_active(request, *args, **kwargs):
         action_description = (
             f"toggled rack port active to {cross.rack_port_active} - {cross}\n"
         )
-        user_log(request.user.username, action_description)
         action_log(request.user.username, action_description)
         server_room_url = reverse("kvmwebapp:server_room", args=[cross.server_room.id])
         return redirect(server_room_url)
     action_description = (
         f"tried to toggle rack port active to {cross.rack_port_active} - {cross}\n"
     )
-    user_log(request.user.username, action_description)
     action_log(request.user.username, action_description)
     messages.error(request, 'Permission denied.')
     return redirect('kvmwebapp:index')
@@ -612,6 +594,5 @@ class SelectKVMPortView(UserPassesTestMixin, FormView):
         cross.kvm_port_active = True
         cross.save()
         action_description = f"selected KVM port number {cross.kvm_port} - {cross}\n"
-        user_log(self.request.user.username, action_description)
         action_log(self.request.user.username, action_description)
         return super().form_valid(form)

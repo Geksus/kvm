@@ -55,6 +55,7 @@ class DjangoUserCreationForm(forms.ModelForm):
             "email",
             "password",
             "is_superuser",
+            "is_staff",
         )
 
     def clean_email(self):
@@ -104,7 +105,7 @@ class CreateServerRoomForm(forms.ModelForm):
         if (
             data.get("kvm_id")
             and data["kvm_id"].server_room_id is not None
-            and data["kvm_id"].server_room_id != self.instance.id
+            and KVM.objects.get(short_name=data["kvm_id"]).server_room_id.id != self.instance.id
         ):
             raise forms.ValidationError(
                 "KVM is already assigned to another server room."
