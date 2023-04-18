@@ -8,7 +8,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import PermissionDenied
-from django.http import JsonResponse, HttpResponseRedirect, HttpResponseForbidden
+from django.http import JsonResponse, HttpResponseRedirect, HttpResponseForbidden, HttpResponse
 from django.urls import reverse_lazy
 from django.views.generic import (
     TemplateView,
@@ -526,6 +526,9 @@ def register(request):
             return redirect(
                 "kvmwebapp:index"
             )  # Replace 'home' with the name of the view you want to redirect to after registration
+        else:
+            print("Form errors:", form.errors)
+            return HttpResponse(f"Form errors: {str(form.errors)}")
     else:
         if request.user.is_superuser:
             form = DjangoUserCreationForm()

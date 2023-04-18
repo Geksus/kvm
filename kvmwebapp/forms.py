@@ -1,4 +1,7 @@
+import re
+
 from django import forms
+from django.core import validators
 
 from .models import KVM_user, ServerRoom, KVM
 from django.contrib.auth.models import User as DjangoUser
@@ -53,6 +56,11 @@ class DjangoUserCreationForm(forms.ModelForm):
             "password",
             "is_superuser",
         )
+
+    def clean_email(self):
+        data = self.cleaned_data["email"]
+        if not re.fullmatch(r"[^@]+@[^@]+\.[^@]+", data):
+            raise forms.ValidationError("Email is not valid.")
 
     def clean_username(self):
         data = self.cleaned_data["username"]
