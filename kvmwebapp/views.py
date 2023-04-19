@@ -438,9 +438,7 @@ class ServerRoomListView(LoginRequiredMixin, ListView):
     model = ServerRoom
     template_name = "serverroom_list.html"
     context_object_name = "server_rooms"
-
-    class Meta:
-        ordering = ['name']
+    ordering = ["name"]
 
 
 @login_required
