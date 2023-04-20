@@ -81,8 +81,8 @@ WSGI_APPLICATION = "new_kvm.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": "kvm_users",
-        "USER": "kvm_user",
+        "NAME": "radius",
+        "USER": "radius",
         "PASSWORD": "1111",
         # 'DEFAULT_CHARSET':'cp1251'
         "OPTIONS": {
