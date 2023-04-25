@@ -1,6 +1,6 @@
 from datetime import datetime
 
-
+from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User as DjangoUser
@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import PermissionDenied
-from django.http import JsonResponse, HttpResponseRedirect, HttpResponseForbidden, HttpResponse
+from django.http import JsonResponse, HttpResponseRedirect, HttpResponseForbidden
 from django.urls import reverse_lazy
 from django.views.generic import (
     TemplateView,
@@ -96,11 +96,14 @@ def create_port_list(filtered_cross_list, server_room_number):
                             )
                             port_info["user_id"] = cross.user.id
                             if port_info["start_time"] and port_info["current_time"]:
-                                port_info["time_elapsed"] = (datetime.strptime(
+                                port_info["time_elapsed"] = (
+                                    datetime.strptime(
                                         port_info["current_time"], "%Y-%m-%d %H:%M:%S"
-                                ) - datetime.strptime(
+                                    )
+                                    - datetime.strptime(
                                         port_info["start_time"], "%Y-%m-%d %H:%M:%S"
-                                )).total_seconds() / 3600
+                                    )
+                                ).total_seconds() / 3600
                     else:
                         port_info["short_name"] = "-"
                         port_info["username"] = "-"
@@ -450,8 +453,9 @@ def delete_server_room(request, *args, **kwargs):
         action_log(request.user.username, action_description)
         return redirect("kvmwebapp:index")
     action_description = f"tried to delete Server Room - {server_room.name}\n"
-    messages.error(request, 'Permission denied.')
-    return redirect('kvmwebapp:sroom_list')
+    action_log(request.user.username, action_description)
+    messages.error(request, "Permission denied.")
+    return redirect("kvmwebapp:sroom_list")
 
 
 class KVMListView(LoginRequiredMixin, ListView):
@@ -470,8 +474,8 @@ def delete_kvm(request, *args, **kwargs):
         return redirect("kvmwebapp:index")
     action_description = f"tried to delete KVM - {kvm.short_name}\n"
     action_log(request.user.username, action_description)
-    messages.error(request, 'Permission denied.')
-    return redirect('kvmwebapp:kvm_list')
+    messages.error(request, "Permission denied.")
+    return redirect("kvmwebapp:kvm_list")
 
 
 def login_view(request):
@@ -515,28 +519,33 @@ def register(request):
             )  # Replace 'home' with the name of the view you want to redirect to after registration
         else:
             print("Form errors:", form.errors)
-            return render(request, "register.html", {"form": form, "form_errors": form.errors})
+            return render(
+                request, "register.html", {"form": form, "form_errors": form.errors}
+            )
     else:
         if request.user.is_superuser:
             form = DjangoUserCreationForm()
             return render(request, "register.html", {"form": form})
-        messages.error(request, 'Permission denied.')
-        return redirect('kvmwebapp:index')
+        messages.error(request, "Permission denied.")
+        return redirect("kvmwebapp:index")
 
 
 class UpdateUser(UserPassesTestMixin, UpdateView):
     model = DjangoUser
     form = DjangoUserCreationForm
-    fields = ["username", "email", "password",]
+    fields = ["username", "email", "password"]
     template_name = "update_user.html"
     success_url = reverse_lazy("kvmwebapp:user_list")
 
     def test_func(self):
-        return self.request.user.is_superuser or (self.request.user.is_staff and self.request.user.username == self.kwargs['username'])
+        return self.request.user.is_superuser or (
+            self.request.user.is_staff
+            and self.request.user.username == self.kwargs["username"]
+        )
 
     def form_valid(self, form):
         # Hash the password before saving the form
-        form.instance.password = make_password(form.cleaned_data['password'])
+        form.instance.password = make_password(form.cleaned_data["password"])
         return super().form_valid(form)
 
 
@@ -554,9 +563,6 @@ class UserListView(LoginRequiredMixin, ListView):
     ordering = ["username"]
     template_name = "user_list.html"
     context_object_name = "user_list"
-
-
-from django.urls import reverse
 
 
 def toggle_rack_port_active(request, *args, **kwargs):
@@ -579,8 +585,8 @@ def toggle_rack_port_active(request, *args, **kwargs):
         f"tried to toggle rack port active to {cross.rack_port_active} - {cross}\n"
     )
     action_log(request.user.username, action_description)
-    messages.error(request, 'Permission denied.')
-    return redirect('kvmwebapp:index')
+    messages.error(request, "Permission denied.")
+    return redirect("kvmwebapp:index")
 
 
 class SelectKVMPortView(UserPassesTestMixin, FormView):

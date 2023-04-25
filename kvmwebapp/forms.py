@@ -110,7 +110,8 @@ class CreateServerRoomForm(forms.ModelForm):
         if (
             data.get("kvm_id")
             and data["kvm_id"].server_room_id is not None
-            and KVM.objects.get(short_name=data["kvm_id"]).server_room_id.id != self.instance.id
+            and KVM.objects.get(short_name=data["kvm_id"]).server_room_id.id
+            != self.instance.id
         ):
             raise forms.ValidationError(
                 "KVM is already assigned to another server room."

@@ -25,7 +25,7 @@ SECRET_KEY = "django-insecure-%wipa^k%7wt(c@n(2wvr(k@b&j@avp_nf3q!otp76g4pi!fvha
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1']
+ALLOWED_HOSTS = ["127.0.0.1"]
 
 
 # Application definition
@@ -112,7 +112,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-ALLOWED_REDIRECT_PROTOCOLS = ['kvmwebapp']
+ALLOWED_REDIRECT_PROTOCOLS = ["kvmwebapp"]
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
