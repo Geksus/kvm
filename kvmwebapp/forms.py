@@ -72,7 +72,7 @@ class DjangoUserCreationForm(forms.ModelForm):
         data = self.cleaned_data["username"]
         if not data.isalnum():
             raise forms.ValidationError(
-                "username should only contain alphanumeric characters."
+                "Username should only contain alphanumeric characters."
             )
         if not 3 <= len(data) <= 12:
             raise forms.ValidationError(

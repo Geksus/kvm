@@ -35,7 +35,7 @@
     <ul>
       {% for user in user_list %}
         {% if user.is_staff and not user.is_superuser %}
-          <li><button type="button" class="btn btn-primary user-list-button" id="user-info-btn" data-bs-toggle="modal" data-bs-target="#userInfoModal" onclick="showUserInfo({{ user.id }})">
+          <li><button type="button" class="btn user-list-button" id="user-info-btn" data-bs-toggle="modal" data-bs-target="#userInfoModal" onclick="showUserInfo({{ user.id }})">
                 {{ user.username }}
               </button>
           </li>
@@ -48,7 +48,7 @@
     <ul>
       {% for user in user_list %}
         {% if user.is_superuser %}
-          <li><button type="button" class="btn btn-primary user-list-button" id="user-info-btn" data-bs-toggle="modal" data-bs-target="#userInfoModal" onclick="showUserInfo({{ user.id }})">
+          <li><button type="button" class="btn user-list-button" id="user-info-btn" data-bs-toggle="modal" data-bs-target="#userInfoModal" onclick="showUserInfo({{ user.id }})">
                 {{ user.username }}
               </button>
           </li>

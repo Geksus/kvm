@@ -1,7 +1,5 @@
 from django.db import models
-from datetime import datetime
 from django.core.exceptions import ValidationError
-from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_filters import rest_framework as filters
 from django.contrib.auth.models import User as DjangoUser
