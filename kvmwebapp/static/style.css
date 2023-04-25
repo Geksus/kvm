@@ -17,7 +17,8 @@
 /* Navigation bar */
 .navbar {
   padding: 1rem;
-  border-radius: 20px;
+  background-color: lightslategrey;
+  /*border-radius: 20px;*/
 }
 
 .nav-item {
@@ -269,4 +270,18 @@ td:hover {
 
 table {
   font-size: 20px;
+}
+
+.user-list-button {
+  margin: 2px;
+  color: #fff;
+  background-color: #198754;
+}
+
+.user-list-col {
+  padding: 1em;
+  margin: 1em;
+  border-radius: 10px;
+  background-color: #ffffff;
+  text-align: left;
 }

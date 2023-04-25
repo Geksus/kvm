@@ -1,12 +1,14 @@
 {% load static %}
 {% block logs %}
+    {% if logs|length > 0 %}
     <div class="kvm_section">
-    {% for log in logs %}
-        <div class="log-entry">
-            {% autoescape off %}
-            <p>User: {{ log.user }} | Start time: {{ log.start_time }} | KVM: {{ log.KVM }}</p>
-            {% endautoescape %}
+        {% for log in logs %}
+            <div class="log-entry">
+                {% autoescape off %}
+                <p>User: {{ log.user }} | Start time: {{ log.start_time }} | KVM: {{ log.KVM }}</p>
+                {% endautoescape %}
+            </div>
+        {% endfor %}
         </div>
-    {% endfor %}
-    </div>
+    {% endif %}
 {% endblock %}

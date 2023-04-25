@@ -15,6 +15,11 @@
     <div class="page_title">
         <h1 id="title">Give KVM Access</h1>
     </div>
+<div class="kvm_section"; id="message"; style="display: none">
+    <div class="message">{{ message }}</div>
+    <br>
+    <button class="btn btn-primary" id="copyButton">Copy</button>
+</div>
 <br>
     <form id="create-user-form" method="POST" action="{% url 'kvmwebapp:give_access' %}">
         {% csrf_token %}
@@ -52,21 +57,38 @@
         </div>
         <input type="hidden" name="username" id="id_hidden_username">
     </form>
-    {% if message != '' %}
-        <br>
-        <div class="kvm_section">
-            <div class="message">{{ message }}</div>
-        </div>
-        <br>
-    {% else %}
-        <div class="kvm_section">
-            <div class="message" style="display: none;"></div>
-        </div>
-    {% endif %}
     <button class="btn btn-primary" style="display: none" id="home" onclick="location.href='/server_room/{{ server_room }}'">OK</button>
 </div>
 
 <script>
+document.getElementById('copyButton').addEventListener('click', function() {
+    // Get the message content
+    var message = document.querySelector('.message').innerHTML;
+
+    // Split the message into an array of lines
+    var lines = message.split('<br>');
+
+    // Join the lines with a newline character
+    var text = lines.join('\n');
+
+    // Create a new element to hold the text to be copied
+    var textarea = document.createElement('textarea');
+    textarea.value = text;
+    document.body.appendChild(textarea);
+
+    // Select and copy the text
+    textarea.select();
+    document.execCommand('copy');
+
+    // Clean up
+    document.body.removeChild(textarea);
+
+    // Show a confirmation message
+    alert('Message copied to clipboard!');
+});
+
+
+
 function formatDate(date) {
     var year = date.getFullYear();
     var month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -87,7 +109,7 @@ document.getElementById('create-user-form').addEventListener('submit', function(
     document.getElementById('email').hidden = true;
     document.getElementById("home").style.display = "block";
     document.getElementById('title').innerHTML = 'Access given';
-    document.getElementById('title').style="background-color: #00ff00";
+
 
     var now = new Date();
     document.getElementById('id_start_time').value = formatDate(now);
@@ -108,12 +130,12 @@ document.getElementById('create-user-form').addEventListener('submit', function(
     }).then(function(data) {
         if (data.success) {
             document.getElementById('title').innerHTML = 'Access given';
-            document.getElementById('title').style="background-color: #00ff00";
+            document.getElementById('message').style.display = "block";
             console.log('Form submission successful');
             var message = 'Username: ' + data.username + '<br>Password: ' + data.password + '<br>Email: ' + data.email + '<br>Issued by: ' + data.issued_by + '<br><br>Use your username and password to log in to the KVM web app.';
         } else {
             document.getElementById('title').innerHTML = 'Error';
-            document.getElementById('title').style="background-color: red";
+            document.getElementById('message').style.display = "block";
             console.log('Form submission failed with errors:', data.errors);
             var message = '';
             for (var field in data.errors) {

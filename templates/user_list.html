@@ -5,8 +5,8 @@
     <link rel="stylesheet" type="text/css" href="{% static "style.css" %}">
 
 <head>
-    <link rel="icon" href="{% static "network.gif" %}"/>
-    <title>{% block title %}User list{% endblock %}</title>
+<link rel="icon" href="{% static "network.gif" %}" type="image/gif" />
+<title>{% block title %}User list{% endblock %}</title>
 </head>
 
 <body>
@@ -14,24 +14,49 @@
 <div class="page_title">
     <h1>List of Users</h1>
 </div>
-<div class="user-sections">
-  {% for letter in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' %}
-    <div class="section" id="section-{{ letter }}">
-      <h2>{{ letter }}</h2>
-      <ul>
-        {% for user in user_list %}
-          {% if user.username|slice:":1"|upper == letter %}
-              <li><button type="button" class="btn btn-primary" id="user-info-btn" data-bs-toggle="modal" data-bs-target="#userInfoModal" onclick="showUserInfo({{ user.id }})">
-                    {{ user.username }}
-                  </button>
-              </li>
+<div class="user-sections row" style="width: 50%; align-content: center">
+  <div class="col user-list-col">
+    <h2>Users</h2>
+    <ul>
+      {% for user in user_list %}
+        {% if not user.is_staff %}
+          {% if not user.is_superuser %}
+            <li><button type="button" class="btn user-list-button" id="user-info-btn" data-bs-toggle="modal" data-bs-target="#userInfoModal" onclick="showUserInfo({{ user.id }})">
+                  {{ user.username }}
+                </button>
+            </li>
           {% endif %}
-        {% endfor %}
-      </ul>
-    </div>
-  {% endfor %}
+        {% endif %}
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="col user-list-col">
+    <h2>Admins</h2>
+    <ul>
+      {% for user in user_list %}
+        {% if user.is_staff and not user.is_superuser %}
+          <li><button type="button" class="btn btn-primary user-list-button" id="user-info-btn" data-bs-toggle="modal" data-bs-target="#userInfoModal" onclick="showUserInfo({{ user.id }})">
+                {{ user.username }}
+              </button>
+          </li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="col user-list-col">
+    <h2>Superusers</h2>
+    <ul>
+      {% for user in user_list %}
+        {% if user.is_superuser %}
+          <li><button type="button" class="btn btn-primary user-list-button" id="user-info-btn" data-bs-toggle="modal" data-bs-target="#userInfoModal" onclick="showUserInfo({{ user.id }})">
+                {{ user.username }}
+              </button>
+          </li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+  </div>
 </div>
-
 <!-- Modal -->
 <div class="modal fade" id="userInfoModal" tabindex="-1" aria-labelledby="userInfoModalLabel" aria-hidden="true">
   <div class="modal-dialog">
@@ -54,7 +79,6 @@
     </div>
   </div>
 </div>
-
 </body>
 
 {% csrf_token %}

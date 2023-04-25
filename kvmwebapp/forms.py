@@ -58,6 +58,11 @@ class DjangoUserCreationForm(forms.ModelForm):
             "is_staff",
         )
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["username"].widget.attrs["class"] = "form-control is-invalid"
+        self.fields["email"].widget.attrs["class"] = "form-control is-invalid"
+
     def clean_email(self):
         data = self.cleaned_data["email"]
         if not re.fullmatch(r"[^@]+@[^@]+\.[^@]+", data):

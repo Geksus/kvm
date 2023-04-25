@@ -2,6 +2,7 @@ from datetime import datetime
 
 
 from django.contrib import messages
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User as DjangoUser
 from django.contrib.auth import get_user_model, authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -305,9 +306,12 @@ def access_info(request, user_id):
 @user_passes_test(lambda u: u.is_superuser)
 def delete_user(request, user_id):
     user = get_object_or_404(DjangoUser, pk=user_id)
-    kvm_user = get_object_or_404(KVM_user, username=user.username)
+    try:
+        kvm_user = get_object_or_404(KVM_user, username=user.username)
+        kvm_user.delete()
+    except Exception as e:
+        print(e)
     user.delete()
-    kvm_user.delete()
     action_description = f"deleted {user.username}\n"
     action_log(request.user.username, action_description)
     return JsonResponse({"success": True})
@@ -511,7 +515,7 @@ def register(request):
             )  # Replace 'home' with the name of the view you want to redirect to after registration
         else:
             print("Form errors:", form.errors)
-            return HttpResponse(f"Form errors: {str(form.errors)}")
+            return render(request, "register.html", {"form": form, "form_errors": form.errors})
     else:
         if request.user.is_superuser:
             form = DjangoUserCreationForm()
@@ -529,6 +533,11 @@ class UpdateUser(UserPassesTestMixin, UpdateView):
 
     def test_func(self):
         return self.request.user.is_superuser or (self.request.user.is_staff and self.request.user.username == self.kwargs['username'])
+
+    def form_valid(self, form):
+        # Hash the password before saving the form
+        form.instance.password = make_password(form.cleaned_data['password'])
+        return super().form_valid(form)
 
 
 def logout_view(request):
