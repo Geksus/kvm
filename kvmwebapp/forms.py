@@ -67,6 +67,7 @@ class DjangoUserCreationForm(forms.ModelForm):
         data = self.cleaned_data["email"]
         if not re.fullmatch(r"[^@]+@[^@]+\.[^@]+", data):
             raise forms.ValidationError("Email is not valid.")
+        return data
 
     def clean_username(self):
         data = self.cleaned_data["username"]
@@ -94,6 +95,14 @@ class CreateServerRoomForm(forms.ModelForm):
             "ports_per_rack",
             "kvm_id",
         )
+        labels = {
+            "name": "Name",
+            "description": "Description (optional)",
+            "num_rows": "Number of rows",
+            "num_racks": "Number of racks",
+            "ports_per_rack": "Number of ports on each rack",
+            "kvm_id": "Select KVM",
+        }
 
     def clean(self):
         data = self.cleaned_data
@@ -123,6 +132,13 @@ class CreateKVMForm(forms.ModelForm):
     class Meta:
         model = KVM
         fields = ("fqdn", "short_name", "ip", "number_of_ports", "server_room_id")
+        labels = {
+            "fqdn": "FQDN",
+            "short_name": "Short name",
+            "ip": "IP",
+            "number_of_ports": "Number of ports",
+            "server_room_id": "Server room id"
+        }
 
     def clean(self):
         data = self.cleaned_data
