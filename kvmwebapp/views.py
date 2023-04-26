@@ -576,7 +576,7 @@ def toggle_rack_port_active(request, *args, **kwargs):
         cross.rack_port_active = not cross.rack_port_active
         cross.save()
         action_description = (
-            f"toggled rack port active to {cross.rack_port_active} - {cross}\n"
+            f"toggled rack port active to {cross.rack_port_active} - row: {cross.row}, rack: {cross.rack}, rack port: {cross.rack_port}\n"
         )
         action_log(request.user.username, action_description)
         server_room_url = reverse("kvmwebapp:server_room", args=[cross.server_room.id])
