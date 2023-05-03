@@ -625,3 +625,4 @@ class SelectKVMPortView(UserPassesTestMixin, FormView):
         action_description = f"selected KVM port number {cross.kvm_port} - {cross}\n"
         action_log(self.request.user.username, action_description)
         return super().form_valid(form)
+
