@@ -174,9 +174,8 @@ class IndexView(LoginRequiredMixin, TemplateView):
 
 
 @login_required
+@user_passes_test(lambda u: u.is_superuser or u.is_staff)
 def give_kvm_access(request, *args, **kwargs):
-    if not request.user.is_superuser or request.user.is_staff:
-        raise PermissionDenied
     row, rack, rack_port, server_room = getting_data(request)
     used_usernames = [user.username for user in KVM_user.objects.all()]
     usernames = [
