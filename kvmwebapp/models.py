@@ -19,7 +19,7 @@ class Radreply(models.Model):
     username = models.CharField(max_length=40, unique=True, help_text="username")
     attribute = models.CharField(max_length=40, default='Cleartext-Password')
     op = models.CharField(max_length=2, default='=')
-    value = models.CharField(max_length=50)
+    value = models.CharField(max_length=250)
 
     class Meta:
         db_table = 'radreply'
