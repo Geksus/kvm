@@ -83,7 +83,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.mysql",
         "NAME": "radius",
         "USER": "radius",
-        "PASSWORD": "1111",
+        "PASSWORD": "support",
         # 'DEFAULT_CHARSET':'cp1251'
         "OPTIONS": {
             "init_command": "SET storage_engine=MYISAM",

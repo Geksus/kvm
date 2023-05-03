@@ -5,6 +5,26 @@ from django_filters import rest_framework as filters
 from django.contrib.auth.models import User as DjangoUser
 
 
+class Radcheck(models.Model):
+    username = models.CharField(max_length=40, unique=True, help_text="username")
+    attribute = models.CharField(max_length=40, default='Cleartext-Password')
+    op = models.CharField(max_length=2, default=':=')
+    value = models.CharField(max_length=20)
+
+    class Meta:
+        db_table = 'radcheck'
+
+
+class Radreply(models.Model):
+    username = models.CharField(max_length=40, unique=True, help_text="username")
+    attribute = models.CharField(max_length=40, default='Cleartext-Password')
+    op = models.CharField(max_length=2, default='=')
+    value = models.CharField(max_length=50)
+
+    class Meta:
+        db_table = 'radreply'
+
+
 class KVM(models.Model):
     fqdn = models.CharField(max_length=40, unique=True, help_text="url")
     short_name = models.CharField(max_length=8, unique=False, help_text="system_name")

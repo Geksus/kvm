@@ -21,7 +21,7 @@ from django.views.generic import (
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Q
 
-from kvmwebapp.models import Cross, CrossFilter, KVM_user, ServerRoom, KVM
+from kvmwebapp.models import Cross, CrossFilter, KVM_user, ServerRoom, KVM, Radcheck, Radreply
 from .forms import (
     KVMAccessForm,
     CreateServerRoomForm,
@@ -203,6 +203,11 @@ def give_kvm_access(request, *args, **kwargs):
             start_time = user.start_time
             user.issued_by = request.user
             user.save()
+            radcheck_q = Radcheck(username=user.username, value=user.password)
+            radcheck_q.save()
+            radreply_q = Radreply(username=user.username,
+                                  value=f"Raritan:G{{KVM: {cross.kvm_id.short_name} | Port {cross.kvm_port} | Row {cross.row}, Rack {cross.rack}, Rack port {cross.rack_port}}}")
+            radreply_q.save()
             if cross is not None:
                 cross.user_id = user.id
                 cross.kvm_id = ServerRoom.objects.get(
@@ -328,6 +333,10 @@ def remove_access(request, user_id):
     cross.user = None
     cross.kvm_port_active = False
     cross.save()
+    radcheck_q = Radcheck.objects.get(username=user.username)
+    radcheck_q.delete()
+    radreply_q = Radreply.objects.get(username=user.username)
+    radreply_q.delete()
     user.delete()
     action_description = f"removed {user.username} access\n"
     action_log(request.user.username, action_description)
