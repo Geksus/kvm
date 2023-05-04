@@ -171,17 +171,20 @@ class IndexView(LoginRequiredMixin, TemplateView):
         context["num_rows"] = range(1, num_rows + 1)
         context["num_ports"] = range(1, num_ports + 1)
         context["max_num_ports"] = num_ports
-        context["logs"] = [
-            {
-                "user": log.username,
-                "start_time": log.start_time.strftime("%d-%m-%Y %H:%M:%S"),
-                "KVM": Cross.objects.get(user=log.id).server_room.kvm_id.short_name,
-            }
-            for log in logs
-        ]
-        context["current_server_room"] = ServerRoom.objects.get(
-            id=server_room
-        ).name  # Add the current server_room to the context
+        try:
+            context["logs"] = [
+                {
+                    "user": log.username,
+                    "start_time": log.start_time.strftime("%d-%m-%Y %H:%M:%S"),
+                    "KVM": Cross.objects.get(user=log.id).server_room.kvm_id.short_name,
+                }
+                for log in logs
+            ]
+            context["current_server_room"] = ServerRoom.objects.get(
+                id=server_room
+            ).name  # Add the current server_room to the context
+        except AttributeError:
+            context["logs"] = []
 
         return context
 
@@ -562,10 +565,11 @@ class UpdateUser(UserPassesTestMixin, UpdateView):
     template_name = "update_user.html"
     success_url = reverse_lazy("kvmwebapp:user_list")
 
-    def test_func(self):
+    def test_func(self, **kwargs):
+        print(self.__dict__)
         return self.request.user.is_superuser or (
             self.request.user.is_staff
-            and self.request.user.username == self.kwargs["username"]
+            and self.request.user.username == DjangoUser.objects.get(id=int(self.kwargs['pk'])).username
         )
 
 

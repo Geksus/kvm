@@ -11,8 +11,10 @@
       </div>
       <div class="modal-body">
         <button type="button" class="btn btn-primary" id="createUserBtn">Give KVM Access</button>
-        <button type="button" class="btn btn-secondary" id="toggleActiveBtn">Deactivate Port</button>
-        <button type="button" class="btn btn-danger" id="selectKVMPort">Select KVM port</button>
+          {% if user.is_superuser %}
+            <button type="button" class="btn btn-secondary" id="toggleActiveBtn">Deactivate Port</button>
+            <button type="button" class="btn btn-danger" id="selectKVMPort">Select KVM port</button>
+          {% endif %}
       </div>
     </div>
   </div>
