@@ -492,7 +492,7 @@ class KVMListView(LoginRequiredMixin, ListView):
 @login_required
 def delete_kvm(request, *args, **kwargs):
     kvm = get_object_or_404(KVM, pk=kwargs["kvm_id"])
-    if request.user.is_superuser or request.user.is_staff:
+    if request.user.is_superuser:
         kvm.delete()
         action_description = f"deleted KVM - {kvm.short_name}\n"
         action_log(request.user.username, action_description)

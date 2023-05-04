@@ -43,6 +43,9 @@ class KVMAccessForm(forms.ModelForm):
 
 
 class DjangoUserCreationForm(forms.ModelForm):
+    is_superuser = forms.BooleanField(required=False)
+    is_staff = forms.BooleanField(required=False)
+
     class Meta:
         model = DjangoUser
         fields = (
@@ -79,6 +82,17 @@ class DjangoUserCreationForm(forms.ModelForm):
         if data in [u.username for u in DjangoUser.objects.all()]:
             raise forms.ValidationError(f"{data} already exists.")
         return data
+
+    def clean(self):
+        cleaned_data = super().clean()
+        is_superuser = cleaned_data.get('is_superuser')
+        is_staff = cleaned_data.get('is_staff')
+        if is_superuser and is_staff:
+            raise forms.ValidationError("User cannot be both staff and superuser.")
+        if not is_superuser and not is_staff:
+            raise forms.ValidationError("User must be either staff or superuser.")
+        return cleaned_data
+
 
 
 class CreateServerRoomForm(forms.ModelForm):
