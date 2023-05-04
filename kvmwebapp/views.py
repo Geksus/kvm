@@ -1,15 +1,12 @@
 from datetime import datetime
 
-from django.contrib.auth.views import PasswordChangeView
 from django.urls import reverse
 from django.contrib import messages
-from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User as DjangoUser
-from django.contrib.auth import get_user_model, authenticate, login, logout, update_session_auth_hash
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse, HttpResponseRedirect, HttpResponseForbidden
 from django.urls import reverse_lazy
 from django.views import View
@@ -276,7 +273,7 @@ def getting_data(request):
 
 def user_info(request, user_id):
     user = get_object_or_404(DjangoUser, pk=user_id)
-    if request.user.is_superuser or request.user.is_staff:
+    if request.user.is_superuser:
         user_data = {
             "username": user.username,
             "password": user.password,
@@ -462,14 +459,17 @@ class CreateKVM(UserPassesTestMixin, CreateView):
     success_url = reverse_lazy("kvmwebapp:index")
 
     def test_func(self):
-        return self.request.user.is_superuser or self.request.user.is_staff
+        return self.request.user.is_superuser
 
 
-class ServerRoomListView(LoginRequiredMixin, ListView):
+class ServerRoomListView(UserPassesTestMixin, ListView):
     model = ServerRoom
     template_name = "serverroom_list.html"
     context_object_name = "server_rooms"
     ordering = ["name"]
+
+    def test_func(self):
+        return self.request.user.is_superuser
 
 
 @login_required
@@ -486,10 +486,13 @@ def delete_server_room(request, *args, **kwargs):
     return redirect("kvmwebapp:sroom_list")
 
 
-class KVMListView(LoginRequiredMixin, ListView):
+class KVMListView(UserPassesTestMixin, ListView):
     model = KVM
     template_name = "kvm_list.html"
     context_object_name = "kvm_list"
+
+    def test_func(self):
+        return self.request.user.is_superuser
 
 
 @login_required
@@ -583,7 +586,7 @@ class UserPasswordUpdateView(View, UserPassesTestMixin):
     form_class = PasswordChangeForm
 
     def test_func(self):
-        return self.request.user.is_superuser
+        return self.request.user.is_superuser or self.request.user.is_staff
 
     def get(self, request, user_id):
         user = get_object_or_404(DjangoUser, id=user_id)
@@ -612,11 +615,14 @@ def logout_view(request):
     )  # Replace 'login' with the name of the view you want to redirect to after logout
 
 
-class UserListView(LoginRequiredMixin, ListView):
+class UserListView(UserPasswordUpdateView, ListView):
     model = DjangoUser
     ordering = ["username"]
     template_name = "user_list.html"
     context_object_name = "user_list"
+
+    def test_func(self):
+        return self.request.user.is_superuser
 
 
 def toggle_rack_port_active(request, *args, **kwargs):
