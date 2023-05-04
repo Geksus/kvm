@@ -563,14 +563,19 @@ class UpdateUser(UserPassesTestMixin, UpdateView):
     form = DjangoUserCreationForm
     fields = ["username", "email", "first_name", "last_name"]
     template_name = "update_user.html"
-    success_url = reverse_lazy("kvmwebapp:user_list")
+    # success_url = reverse_lazy("kvmwebapp:user_list")
 
     def test_func(self, **kwargs):
-        print(self.__dict__)
         return self.request.user.is_superuser or (
             self.request.user.is_staff
             and self.request.user.username == DjangoUser.objects.get(id=int(self.kwargs['pk'])).username
         )
+
+    def get_success_url(self):
+        if self.request.user.is_superuser:
+            return reverse_lazy("kvmwebapp:user_list")
+        else:
+            return reverse_lazy("kvmwebapp:index")
 
 
 class UserPasswordUpdateView(View, UserPassesTestMixin):
@@ -578,10 +583,7 @@ class UserPasswordUpdateView(View, UserPassesTestMixin):
     form_class = PasswordChangeForm
 
     def test_func(self):
-        return self.request.user.is_superuser or (
-            self.request.user.is_staff
-            and self.request.user.username == self.kwargs["username"]
-        )
+        return self.request.user.is_superuser
 
     def get(self, request, user_id):
         user = get_object_or_404(DjangoUser, id=user_id)
