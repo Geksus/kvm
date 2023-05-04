@@ -18,12 +18,12 @@
 {% for kvm in kvm_list %}
     <div class="kvm_section">
         <p class="log-entry">{{ kvm.short_name }} | FQDN: {{ kvm.fqdn }} | IP: {{ kvm.ip }} | Ports: {{ kvm.number_of_ports }}</p>
-        <button class="btn btn-danger" onclick="confirmDeletion('/delete_kvm/{{ kvm.id }}')">Delete kvm</button><br>
+        <button class="btn delete-something-button" onclick="confirmDeletion('/delete_kvm/{{ kvm.id }}')">Delete kvm</button><br>
     </div>
 {% endfor %}
 <br>
 <br>
-<button class="btn btn-primary" onclick="location.href='/create_kvm/';">Create KVM</button>
+<button class="btn create-something-button" onclick="location.href='/create_kvm/';">Create KVM</button>
 
 <script>
     function confirmDeletion(url) {

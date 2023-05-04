@@ -18,14 +18,11 @@
     {% include 'modals.html' %}
 {% endblock %}
 
-<div style="height: 100px;"></div> <!-- Placeholder to push content down and avoid being covered by the navbar -->
+{#<div style="height: 100px;"></div> <!-- Placeholder to push content down and avoid being covered by the navbar -->#}
 
 <div class="page_title">
     <h1>KVM Port Status</h1>
 </div>
-
-
-
 
 {% block table %}
     {% include 'table.html' %}
@@ -40,5 +37,8 @@
     {% include 'scripts.html' %}
 {% endblock %}
 
+<div class="footer">
+  <img src={% static "logo.svg" %} alt="Footer">
+</div>
 </body>
 </html>

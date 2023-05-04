@@ -17,13 +17,13 @@
 {% for room in server_rooms %}
     <div class="kvm_section">
         <p class="log-entry">{{ room.name }}: Rows {{ room.num_rows }} | Racks: {{ room.num_racks }} | Ports per rack: {{ room.ports_per_rack }} | KVM: {{ room.kvm_id.short_name }}</p>
-        <button class="btn btn-warning" onclick="confirmUpdate('/update_sroom/{{ room.id }}')">Update room</button>
-        <button class="btn btn-danger" onclick="confirmDeletion('/delete_sroom/{{ room.id }}')">Delete room</button><br>
+        <button class="btn edit-something-button" onclick="confirmUpdate('/update_sroom/{{ room.id }}')">Edit room</button>
+        <button class="btn delete-server-room-button" onclick="confirmDeletion('/delete_sroom/{{ room.id }}')">Delete room</button><br>
     </div>
 {% endfor %}
 <br>
 <br>
-<button class="btn btn-primary" onclick="location.href='/create_sroom/';">Create Server Room</button>
+<button class="btn create-something-button" onclick="location.href='/create_sroom/';">Create Server Room</button>
 
 <script>
     function confirmDeletion(url) {

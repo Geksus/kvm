@@ -16,21 +16,6 @@
 </div>
 <div class="user-sections row" style="width: 50%; align-content: center">
   <div class="col user-list-col">
-    <h2>Users</h2>
-    <ul>
-      {% for user in user_list %}
-        {% if not user.is_staff %}
-          {% if not user.is_superuser %}
-            <li><button type="button" class="btn user-list-button" id="user-info-btn" data-bs-toggle="modal" data-bs-target="#userInfoModal" onclick="showUserInfo({{ user.id }})">
-                  {{ user.username }}
-                </button>
-            </li>
-          {% endif %}
-        {% endif %}
-      {% endfor %}
-    </ul>
-  </div>
-  <div class="col user-list-col">
     <h2>Admins</h2>
     <ul>
       {% for user in user_list %}
@@ -57,6 +42,9 @@
     </ul>
   </div>
 </div>
+
+<br>
+<button class="btn create-something-button" onclick="location.href='/register/'">Create user</button>
 <!-- Modal -->
 <div class="modal fade" id="userInfoModal" tabindex="-1" aria-labelledby="userInfoModalLabel" aria-hidden="true">
   <div class="modal-dialog">
