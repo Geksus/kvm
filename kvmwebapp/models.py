@@ -17,7 +17,7 @@ class Radcheck(models.Model):
 
 class Radreply(models.Model):
     username = models.CharField(max_length=40, unique=True, help_text="username")
-    attribute = models.CharField(max_length=40, default='Cleartext-Password')
+    attribute = models.CharField(max_length=40, default='FILTER-ID')
     op = models.CharField(max_length=2, default='=')
     value = models.CharField(max_length=250)
 

@@ -387,6 +387,18 @@ table {
   color: black;
 }
 
+.change-password-button {
+  margin-left: 0;
+  margin-top: 7px;
+  color: #ffffff;
+  background-color: black;
+}
+
+.change-password-button:hover {
+  color: black;
+  background-color: #B00015;
+}
+
 .user-list-col {
   padding: 1em;
   margin-left: 35px;

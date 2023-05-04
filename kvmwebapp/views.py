@@ -1,16 +1,18 @@
 from datetime import datetime
 
+from django.contrib.auth.views import PasswordChangeView
 from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User as DjangoUser
-from django.contrib.auth import get_user_model, authenticate, login, logout
+from django.contrib.auth import get_user_model, authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse, HttpResponseRedirect, HttpResponseForbidden
 from django.urls import reverse_lazy
+from django.views import View
 from django.views.generic import (
     TemplateView,
     CreateView,
@@ -556,7 +558,7 @@ def register(request):
 class UpdateUser(UserPassesTestMixin, UpdateView):
     model = DjangoUser
     form = DjangoUserCreationForm
-    fields = ["username", "email", "password"]
+    fields = ["username", "email", "first_name", "last_name"]
     template_name = "update_user.html"
     success_url = reverse_lazy("kvmwebapp:user_list")
 
@@ -566,10 +568,33 @@ class UpdateUser(UserPassesTestMixin, UpdateView):
             and self.request.user.username == self.kwargs["username"]
         )
 
-    def form_valid(self, form):
-        # Hash the password before saving the form
-        form.instance.password = make_password(form.cleaned_data["password"])
-        return super().form_valid(form)
+
+class UserPasswordUpdateView(View, UserPassesTestMixin):
+    template_name = 'password_change.html'
+    form_class = PasswordChangeForm
+
+    def test_func(self):
+        return self.request.user.is_superuser or (
+            self.request.user.is_staff
+            and self.request.user.username == self.kwargs["username"]
+        )
+
+    def get(self, request, user_id):
+        user = get_object_or_404(DjangoUser, id=user_id)
+        form = self.form_class(user=user)
+        return render(request, self.template_name, {'form': form, 'user': user})
+
+    def post(self, request, user_id):
+        user = get_object_or_404(DjangoUser, id=user_id)
+        form = self.form_class(user=user, data=request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)
+            messages.success(request, f'The password for user {user.username} was successfully updated!')
+            return redirect(reverse_lazy('kvmwebapp:user_list'))
+        else:
+            messages.error(request, 'Please correct the errors below.')
+        return render(request, self.template_name, {'form': form, 'user': user})
 
 
 def logout_view(request):

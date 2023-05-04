@@ -5,8 +5,8 @@
     <link rel="stylesheet" type="text/css" href="{% static "style.css" %}">
 
 <head>
-<link rel="icon" href="{% static "network.gif" %}" type="image/gif" />
-<title>{% block title %}User list{% endblock %}</title>
+    <link rel="icon" href="{% static "network.gif" %}"/>
+    <title>{% block title %}User list{% endblock %}</title>
 </head>
 
 <body>
@@ -61,6 +61,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn edit-something-button" onclick="location.href='/update_user/' + userIdToDelete">Edit User</button>
+        <button type="button" class="btn change-password-button" onclick="location.href='/change_password/' + userIdToDelete">Change password</button>
         <button type="button" class="btn delete-something-button" onclick="deleteUser(userIdToDelete); $('#userInfoModal').modal('hide')">Delete User</button>
 {#        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>#}
       </div>
