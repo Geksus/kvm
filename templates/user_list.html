@@ -60,14 +60,18 @@
         <p>Email: <span id="email"></span></p>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-primary" onclick="location.href='/update_user/' + userIdToDelete">Edit User</button>
-        <button type="button" class="btn btn-danger" onclick="deleteUser(userIdToDelete); $('#userInfoModal').modal('hide')">Delete User</button>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn edit-something-button" onclick="location.href='/update_user/' + userIdToDelete">Edit User</button>
+        <button type="button" class="btn delete-something-button" onclick="deleteUser(userIdToDelete); $('#userInfoModal').modal('hide')">Delete User</button>
+{#        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>#}
       </div>
     </div>
   </div>
 </div>
 </body>
+
+<div class="footer">
+  <img src={% static "logo.svg" %} alt="Footer">
+</div>
 
 {% csrf_token %}
 <script>

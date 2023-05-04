@@ -30,6 +30,17 @@ from .forms import (
     SelectKVMPortForm,
 )
 from .logs import action_log
+import random
+import string
+
+
+def generate_password(length):
+    """Generate a random password of the specified length."""
+    # Define the possible characters to use in the password
+    characters = string.ascii_letters + string.digits
+
+    return ''.join(random.sample(characters, length))
+
 
 
 def filter_access():
@@ -185,6 +196,7 @@ def give_kvm_access(request, *args, **kwargs):
     if request.method == "POST":
         form = KVMAccessForm(request.POST)
         if form.is_valid():
+            print(request.POST)
             cross = Cross.objects.get(
                 row=int(request.POST["row"]),
                 rack=int(request.POST["rack"]),
@@ -194,11 +206,11 @@ def give_kvm_access(request, *args, **kwargs):
 
             user = form.save(commit=False)
             user.start_time = datetime.now()
-            User = get_user_model()
-            user.password = User.objects.make_random_password(length=10)
-            first_name = user.first_name
-            last_name = user.last_name
-            user.email = DjangoUser.objects.get(username=user.username).email
+            # User = get_user_model()
+            user.password = generate_password(10)
+            # first_name = user.first_name
+            # last_name = user.last_name
+            # user.email = DjangoUser.objects.get(username=user.username).email
             start_time = user.start_time
             user.issued_by = request.user
             user.save()
@@ -221,8 +233,8 @@ def give_kvm_access(request, *args, **kwargs):
                     "success": True,
                     "username": user.username,
                     "password": user.password,
-                    "first_name": first_name,
-                    "last_name": last_name,
+                    # "first_name": first_name,
+                    # "last_name": last_name,
                     "email": user.email,
                     "start_time": start_time.strftime("%d-%m-%Y %H:%M:%S"),
                     "issued_by": request.user.username,
@@ -277,11 +289,11 @@ def access_info(request, user_id):
     user = get_object_or_404(KVM_user, pk=user_id)
     if request.user.is_superuser or request.user.is_staff:
         duration = datetime.now() - user.start_time
-        first_name = (
-            DjangoUser.objects.filter(username=user.username).first().first_name
-        )
-        last_name = DjangoUser.objects.filter(username=user.username).first().last_name
-        email = DjangoUser.objects.filter(username=user.username).first().email
+        # first_name = (
+        #     DjangoUser.objects.filter(username=user.username).first().first_name
+        # )
+        # last_name = DjangoUser.objects.filter(username=user.username).first().last_name
+        # email = DjangoUser.objects.filter(username=user.username).first().email
         # Calculate the total number of seconds
         total_seconds = int(duration.total_seconds())
 
@@ -297,9 +309,9 @@ def access_info(request, user_id):
             "start_time": user.start_time.strftime("%d-%m-%Y %H:%M:%S"),
             "active_for": active_for,
             "issued_by": user.issued_by.username,
-            "first_name": first_name,
-            "last_name": last_name,
-            "email": email,
+            # "first_name": first_name,
+            # "last_name": last_name,
+            # "email": email,
         }
         action_description = f"viewed {user.username} access info\n"
         action_log(request.user.username, action_description)

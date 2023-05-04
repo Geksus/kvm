@@ -30,10 +30,7 @@ class KVMAccessForm(forms.ModelForm):
         fields = ("username", "email")
 
     def clean_username(self):
-        list_of_users = [u.username for u in DjangoUser.objects.all()]
         data = self.cleaned_data["username"]
-        if data not in list_of_users:
-            raise forms.ValidationError("KVM_user does not exist.")
         if not data.isalnum():
             raise forms.ValidationError(
                 "username should only contain alphanumeric characters."

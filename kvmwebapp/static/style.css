@@ -55,6 +55,7 @@
 .dropdown-content a:hover {
   background-color: black;
   color: white;
+  border-radius: 5px;
 }
 
 .dropdown:hover .dropdown-content {
@@ -68,6 +69,7 @@
 
 .dropdown-content .dropdown_server_list {
   background-color: #B00015;
+  border-radius: 5px;
 }
 
 /* Auth buttons */
@@ -115,7 +117,7 @@ body {
 }
 
 .modal-header {
-  background-color: green;
+  background-color: #B00015;
   color: white;
 }
 .modal-body {
