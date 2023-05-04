@@ -196,7 +196,6 @@ def give_kvm_access(request, *args, **kwargs):
     if request.method == "POST":
         form = KVMAccessForm(request.POST)
         if form.is_valid():
-            print(request.POST)
             cross = Cross.objects.get(
                 row=int(request.POST["row"]),
                 rack=int(request.POST["rack"]),
@@ -212,6 +211,7 @@ def give_kvm_access(request, *args, **kwargs):
             # last_name = user.last_name
             # user.email = DjangoUser.objects.get(username=user.username).email
             start_time = user.start_time
+            address = ServerRoom.objects.get(id=cross.server_room_id).kvm_id.fqdn
             user.issued_by = request.user
             user.save()
             radcheck_q = Radcheck(username=user.username, value=user.password)
@@ -238,6 +238,7 @@ def give_kvm_access(request, *args, **kwargs):
                     "email": user.email,
                     "start_time": start_time.strftime("%d-%m-%Y %H:%M:%S"),
                     "issued_by": request.user.username,
+                    "kvm": address
                 }
             )
         else:
@@ -253,7 +254,9 @@ def give_kvm_access(request, *args, **kwargs):
             "server_room": server_room,
             "current_time": datetime.now().strftime("%H:%M"),
             "usernames": usernames,
+            "kvm": ServerRoom.objects.get(id=server_room).kvm_id.fqdn
         }
+        print(context)
         return render(request, "give_kvm_access.html", context)
 
 
