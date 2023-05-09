@@ -63,7 +63,7 @@
         </li>
         <li class="nav-item">
             <div style="position: absolute; right: 20px; top: 17px">
-                <button class="btn logged-as-button" data-bs-toggle="modal" data-bs-target="#userInfoModal" onclick="showUserInfo({{ user.id }})">Logged in as: {{ user.username }}</button><button class="btn logout-button" onclick="location.href='/logout/'">Logout</button>
+                <button class="btn logged-as-button" data-bs-toggle="modal" data-bs-target="#profileInfoModal" onclick="showProfileInfo({{ user.id }})">Logged in as: {{ user.username }}</button><button class="btn logout-button" onclick="location.href='/logout/'">Logout</button>
             </div>
         </li>
       </ul>
@@ -71,18 +71,18 @@
   </div>
 </nav>
 
-<div class="modal fade" id="userInfoModal" tabindex="-1" aria-labelledby="userInfoModalLabel" aria-hidden="true">
+<div class="modal fade" id="profileInfoModal" tabindex="-1" aria-labelledby="profileInfoModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="userInfoModalLabel">User Information</h5>
+        <h5 class="modal-title" id="profileInfoModalLabel">User Information</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <p>Username: <span id="username">{{ user.username }}</span></p>
-        <p>First name: <span id="first-name">{{ user.first_name }}</span></p>
-        <p>Last name: <span id="last-name">{{ user.last_name }}</span></p>
-        <p>Email: <span id="email">{{ user.email }}</span></p>
+        <p>Username: <span id="profile-username">{{ user.username }}</span></p>
+        <p>First name: <span id="profile-first-name">{{ user.first_name }}</span></p>
+        <p>Last name: <span id="profile-last-name">{{ user.last_name }}</span></p>
+        <p>Email: <span id="profile-email">{{ user.email }}</span></p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn edit-something-button" onclick="location.href='/update_user/' + {{ user.id }}">Edit User</button>
@@ -94,6 +94,20 @@
 
 
 <script>
-console.log({{ user.id }})
+function showProfileInfo(userId) {
+  // Store the userId that we want to delete when the Delete User button is clicked
+  userIdToDelete = userId;
+
+  // Fetch the user information from your server
+  fetch('/user_info/' + userId)
+    .then(response => response.json())
+    .then(user => {
+      // Set the user information in the modal
+      document.getElementById('profile-username').textContent = user.username;
+      document.getElementById('profile-first-name').textContent = user.first_name;
+      document.getElementById('profile-last-name').textContent = user.last_name;
+      document.getElementById('profile-email').textContent = user.email;
+    });
+}
 </script>
 {% endblock %}

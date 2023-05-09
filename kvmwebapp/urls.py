@@ -20,7 +20,7 @@ from kvmwebapp.views import (
     UpdateServerRoom,
     toggle_rack_port_active,
     SelectKVMPortView,
-    UpdateUser, UserPasswordUpdateView,
+    UpdateUser, UserPasswordUpdateView, reset_user_password,
 )
 
 app_name = "kvmwebapp"
@@ -63,4 +63,5 @@ urlpatterns = [
     ),
     path("update_user/<int:pk>/", UpdateUser.as_view(), name="update_user"),
     path('change_password/<int:user_id>/', UserPasswordUpdateView.as_view(), name='change_password'),
+    path('reset_user_password/<int:user_id>/', reset_user_password, name='reset_user_password'),
 ]

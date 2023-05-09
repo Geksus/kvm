@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.models import User as DjangoUser
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
+from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm, SetPasswordForm
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.http import JsonResponse, HttpResponseRedirect, HttpResponseForbidden
 from django.urls import reverse_lazy
@@ -273,7 +273,7 @@ def getting_data(request):
 
 def user_info(request, user_id):
     user = get_object_or_404(DjangoUser, pk=user_id)
-    if request.user.is_superuser:
+    if request.user.is_superuser or request.user.username == DjangoUser.objects.get(id=user_id).username:
         user_data = {
             "username": user.username,
             "password": user.password,
@@ -281,6 +281,7 @@ def user_info(request, user_id):
             "last_name": user.last_name,
             "email": user.email,
         }
+        print(user_data)
         action_description = f"viewed {user.username} info\n"
         action_log(request.user.username, action_description)
         return JsonResponse(user_data)
@@ -581,7 +582,7 @@ class UpdateUser(UserPassesTestMixin, UpdateView):
             return reverse_lazy("kvmwebapp:index")
 
 
-class UserPasswordUpdateView(View, UserPassesTestMixin):
+class UserPasswordUpdateView(FormView, UserPassesTestMixin):
     template_name = 'password_change.html'
     form_class = PasswordChangeForm
 
@@ -606,6 +607,23 @@ class UserPasswordUpdateView(View, UserPassesTestMixin):
         return render(request, self.template_name, {'form': form, 'user': user})
 
 
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def reset_user_password(request, user_id):
+    user = DjangoUser.objects.get(pk=user_id)
+
+    if request.method == 'POST':
+        form = SetPasswordForm(user, request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('kvmwebapp:user_list')  # Redirect to user list or change page
+    else:
+        form = SetPasswordForm(user)
+
+    return render(request, 'reset_user_password.html', {'form': form, 'user': user})
+
+
+
 def logout_view(request):
     action_description = f"logged out\n"
     action_log(request.user.username, action_description)
@@ -615,7 +633,7 @@ def logout_view(request):
     )  # Replace 'login' with the name of the view you want to redirect to after logout
 
 
-class UserListView(UserPasswordUpdateView, ListView):
+class UserListView(UserPassesTestMixin, ListView):
     model = DjangoUser
     ordering = ["username"]
     template_name = "user_list.html"

@@ -1,6 +1,7 @@
 {% block navbar %}
     {% include 'navbar.html' %}
 {% endblock %}
+
 {% load static %}
     <link rel="stylesheet" type="text/css" href="{% static "style.css" %}">
 
@@ -61,7 +62,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn edit-something-button" onclick="location.href='/update_user/' + userIdToDelete">Edit User</button>
-        <button type="button" class="btn change-password-button" onclick="location.href='/change_password/' + userIdToDelete">Change password</button>
+        <button type="button" class="btn change-password-button" onclick="location.href='/reset_user_password/' + userIdToDelete">Set password</button>
         <button type="button" class="btn delete-something-button" onclick="deleteUser(userIdToDelete); $('#userInfoModal').modal('hide')">Delete User</button>
 {#        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>#}
       </div>
@@ -82,12 +83,14 @@ let userIdToDelete = null;
 function showUserInfo(userId) {
   // Store the userId that we want to delete when the Delete User button is clicked
   userIdToDelete = userId;
+  console.log(userId)
 
   // Fetch the user information from your server
   fetch('/user_info/' + userId)
     .then(response => response.json())
     .then(user => {
       // Set the user information in the modal
+        console.log(user)
       document.getElementById('username').textContent = user.username;
       document.getElementById('first-name').textContent = user.first_name;
       document.getElementById('last-name').textContent = user.last_name;
