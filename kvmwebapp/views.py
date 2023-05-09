@@ -456,7 +456,7 @@ class CreateKVM(UserPassesTestMixin, CreateView):
     form = CreateKVMForm
     fields = ["fqdn", "short_name", "ip", "number_of_ports"]
     template_name = "kvm_form.html"
-    success_url = reverse_lazy("kvmwebapp:index")
+    success_url = reverse_lazy("kvmwebapp:kvm_list")
 
     def test_func(self):
         return self.request.user.is_superuser
@@ -498,11 +498,11 @@ class KVMListView(UserPassesTestMixin, ListView):
 @login_required
 def delete_kvm(request, *args, **kwargs):
     kvm = get_object_or_404(KVM, pk=kwargs["kvm_id"])
-    if request.user.is_superuser:
+    if request.user.is_superuser and kvm.id not in (i.kvm_id.id for i in ServerRoom.objects.all()):
         kvm.delete()
         action_description = f"deleted KVM - {kvm.short_name}\n"
         action_log(request.user.username, action_description)
-        return redirect("kvmwebapp:index")
+        return redirect("kvmwebapp:kvm_list")
     action_description = f"tried to delete KVM - {kvm.short_name}\n"
     action_log(request.user.username, action_description)
     messages.error(request, "Permission denied.")

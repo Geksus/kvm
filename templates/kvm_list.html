@@ -34,6 +34,8 @@
     function confirmDeletion(url) {
         if (confirm("Are you sure you want to delete this KVM?")) {
             window.location.href=url;
+        } else {
+            alert("KVM was not deleted.");
         }
     }
 </script>
