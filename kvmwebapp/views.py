@@ -432,6 +432,11 @@ class UpdateServerRoom(UserPassesTestMixin, UpdateView):
                         },
                     )
 
+        for c in Cross.objects.all():
+            if c.server_room == self.object:
+                c.kvm_id = self.object.kvm_id
+                c.save()
+
         # Delete extra crosses
         Cross.objects.filter(
             Q(server_room=self.object)
