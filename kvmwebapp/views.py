@@ -281,7 +281,6 @@ def user_info(request, user_id):
             "last_name": user.last_name,
             "email": user.email,
         }
-        print(user_data)
         action_description = f"viewed {user.username} info\n"
         action_log(request.user.username, action_description)
         return JsonResponse(user_data)
