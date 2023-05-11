@@ -8,12 +8,10 @@ The KVM Web Interface provides a user-friendly interface that simplifies the man
 
 ## Features
 
-- Remote access: The web interface allows users to access and control multiple computers from anywhere using a web browser.
+- Remote access: The web interface allows users to grant access to Raritan KVM.
 - Multi-platform support: It works with various operating systems that support KVM, including Linux, Windows, and BSD.
 - User management: The interface provides user management functionality, allowing administrators to grant access to specific users or groups.
 - Role-based access control: Different user roles can be defined with varying levels of access and permissions.
-- Virtual console: Users can view and interact with the virtual console of each machine, providing a similar experience to physical access.
-- Power management: The interface allows users to power on, power off, restart, or perform other power-related operations on the remote machines.
 - Audit logs: All actions performed through the interface are logged, providing an audit trail for accountability and troubleshooting.
 
 ## Getting Started
@@ -21,7 +19,7 @@ The KVM Web Interface provides a user-friendly interface that simplifies the man
 To use the KVM Web Interface, follow these steps:
 
 1. Clone the repository: `git clone https://github.com/Geksus/kvm.git`
-2. Install the required dependencies specified in the documentation.
+2. Install the required dependencies specified in the documentation: `pip install -r requerements.txt`
 3. Configure the web server to serve the web interface files.
 4. Configure the backend to communicate with the KVM-enabled systems.
 5. Set up user accounts and access permissions according to your requirements.
