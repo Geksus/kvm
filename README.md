@@ -1,6 +1,6 @@
 # KVM Web Interface
 
-![KVM Logo](https://github.com/Geksus/kvm/blob/main/logo.png)
+![KVM Logo](https://github.com/Geksus/kvm/kvmwebapp/static/logo.png)
 
 This project is a web interface for managing and granting access to KVM (Keyboard Video Mouse) functionality. It allows users to control multiple computers remotely using a web browser, eliminating the need for physical access to each individual machine.
 
