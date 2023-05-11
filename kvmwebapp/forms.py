@@ -84,8 +84,8 @@ class DjangoUserCreationForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        is_superuser = cleaned_data.get('is_superuser')
-        is_staff = cleaned_data.get('is_staff')
+        is_superuser = cleaned_data.get("is_superuser")
+        is_staff = cleaned_data.get("is_staff")
         if is_superuser and is_staff:
             raise forms.ValidationError("User cannot be both staff and superuser.")
         if not is_superuser and not is_staff:
@@ -146,7 +146,7 @@ class CreateKVMForm(forms.ModelForm):
             "short_name": "Short name",
             "ip": "IP",
             "number_of_ports": "Number of ports",
-            "server_room_id": "Server room id"
+            "server_room_id": "Server room id",
         }
 
     def clean(self):

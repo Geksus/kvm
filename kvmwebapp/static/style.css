@@ -21,8 +21,9 @@
 /* Navigation bar */
 .navbar {
   padding: 1rem;
-  background-color: lightslategrey;
+  background-color: white;
   border-bottom: black solid 1px;
+  color: white;
 }
 
 .nav-item {
@@ -378,8 +379,9 @@ table {
 }
 
 .do-not-click-button {
-  background-color: white;
-  color: white;
+  background-color: transparent;
+  color: transparent;
+  border: none;
 }
 
 .do-not-click-button:hover {

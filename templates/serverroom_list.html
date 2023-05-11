@@ -30,12 +30,15 @@
 </div>
 
 <script>
-    function confirmDeletion(url) {
-        if (confirm("Are you sure you want to delete this server room?")) {
-            window.location.href=url;
-
+function confirmDeletion(url) {
+    if (confirm("Are you sure you want to delete this server room?")) {
+        if (confirm("I understand the risks and I REALLY want to delete this room!!!")) {
+            window.location.href = url;
+        } else {
+            alert("Deletion canceled.");
         }
     }
+}
 
     function confirmUpdate(url) {
         if (confirm("Are you sure you want to update this server room?")) {

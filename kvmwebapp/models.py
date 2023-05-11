@@ -7,22 +7,22 @@ from django.contrib.auth.models import User as DjangoUser
 
 class Radcheck(models.Model):
     username = models.CharField(max_length=40, unique=True, help_text="username")
-    attribute = models.CharField(max_length=40, default='Cleartext-Password')
-    op = models.CharField(max_length=2, default=':=')
+    attribute = models.CharField(max_length=40, default="Cleartext-Password")
+    op = models.CharField(max_length=2, default=":=")
     value = models.CharField(max_length=20)
 
     class Meta:
-        db_table = 'radcheck'
+        db_table = "radcheck"
 
 
 class Radreply(models.Model):
     username = models.CharField(max_length=40, unique=True, help_text="username")
-    attribute = models.CharField(max_length=40, default='FILTER-ID')
-    op = models.CharField(max_length=2, default='=')
+    attribute = models.CharField(max_length=40, default="FILTER-ID")
+    op = models.CharField(max_length=2, default="=")
     value = models.CharField(max_length=250)
 
     class Meta:
-        db_table = 'radreply'
+        db_table = "radreply"
 
 
 class KVM(models.Model):

@@ -77,6 +77,7 @@ function showUserInfo(userId) {
             userInfoWindow.document.write('<h1>User Information</h1>');
             userInfoWindow.document.write('<p>Username: ' + user.username + '</p>');
             userInfoWindow.document.write('<p>Password: ' + user.password + '</p>');
+            userInfoWindow.document.write('<p>Address: ' + port.fqdn + '</p>');
             {#userInfoWindow.document.write('<p>First name: ' + user.first_name + '</p>');#}
             {#userInfoWindow.document.write('<p>Last name: ' + user.last_name + '</p>');#}
             {#userInfoWindow.document.write('<p>Email: ' + user.email + '</p>');#}
@@ -94,12 +95,8 @@ function showUserInfo(userId) {
                 var textArea = userInfoWindow.document.createElement('textarea');
                 textArea.value = 'Username: ' + user.username + '\n' +
                                   'Password: ' + user.password + '\n' +
-                                  'First name: ' + user.first_name + '\n' +
-                                  'Last name: ' + user.last_name + '\n' +
-                                  'Email: ' + user.email + '\n' +
-                                  'Start time: ' + user.start_time + '\n' +
-                                  'Active for: ' + user.active_for + '\n' +
-                                  'Issued by: ' + user.issued_by;
+                                  'Address:' + port.fqdn
+
 
                 // Append the textarea element to the document and select its contents
                 userInfoWindow.document.body.appendChild(textArea);

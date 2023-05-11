@@ -5,11 +5,14 @@ from django.contrib import messages
 from django.contrib.auth.models import User as DjangoUser
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm, SetPasswordForm
+from django.contrib.auth.forms import (
+    AuthenticationForm,
+    PasswordChangeForm,
+    SetPasswordForm,
+)
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.http import JsonResponse, HttpResponseRedirect, HttpResponseForbidden
 from django.urls import reverse_lazy
-from django.views import View
 from django.views.generic import (
     TemplateView,
     CreateView,
@@ -20,7 +23,15 @@ from django.views.generic import (
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Q
 
-from kvmwebapp.models import Cross, CrossFilter, KVM_user, ServerRoom, KVM, Radcheck, Radreply
+from kvmwebapp.models import (
+    Cross,
+    CrossFilter,
+    KVM_user,
+    ServerRoom,
+    KVM,
+    Radcheck,
+    Radreply,
+)
 from .forms import (
     KVMAccessForm,
     CreateServerRoomForm,
@@ -38,8 +49,7 @@ def generate_password(length):
     # Define the possible characters to use in the password
     characters = string.ascii_letters + string.digits
 
-    return ''.join(random.sample(characters, length))
-
+    return "".join(random.sample(characters, length))
 
 
 def filter_access():
@@ -94,8 +104,10 @@ def create_port_list(filtered_cross_list, server_room_number):
                     port_info["kvm_port"] = cross.kvm_port or "-"
                     port_info["server_room"] = cross.server_room.id
                     cross.kvm_id = cross.server_room.kvm_id
+                    fqdn = KVM.objects.get(id=cross.kvm_id.id).fqdn
                     if cross.kvm_id:
                         port_info["short_name"] = cross.server_room.kvm_id.short_name
+                        port_info["fqdn"] = fqdn
                         if cross.user:
                             port_info["username"] = cross.user.username
                             port_info["start_time"] = cross.user.start_time.strftime(
@@ -218,8 +230,10 @@ def give_kvm_access(request, *args, **kwargs):
             user.save()
             radcheck_q = Radcheck(username=user.username, value=user.password)
             radcheck_q.save()
-            radreply_q = Radreply(username=user.username,
-                                  value=f"Raritan:G{{KVM: {cross.kvm_id.short_name} | Port {cross.kvm_port} | Row {cross.row}, Rack {cross.rack}, Rack port {cross.rack_port}}}")
+            radreply_q = Radreply(
+                username=user.username,
+                value=f"Raritan:G{{KVM: {cross.kvm_id.short_name} | Port {cross.kvm_port} | Row {cross.row}, Rack {cross.rack}, Rack port {cross.rack_port}}}",
+            )
             radreply_q.save()
             if cross is not None:
                 cross.user_id = user.id
@@ -240,7 +254,7 @@ def give_kvm_access(request, *args, **kwargs):
                     "email": user.email,
                     "start_time": start_time.strftime("%d-%m-%Y %H:%M:%S"),
                     "issued_by": request.user.username,
-                    "kvm": address
+                    "kvm": address,
                 }
             )
         else:
@@ -256,7 +270,7 @@ def give_kvm_access(request, *args, **kwargs):
             "server_room": server_room,
             "current_time": datetime.now().strftime("%H:%M"),
             "usernames": usernames,
-            "kvm": ServerRoom.objects.get(id=server_room).kvm_id.fqdn
+            "kvm": ServerRoom.objects.get(id=server_room).kvm_id.fqdn,
         }
         print(context)
         return render(request, "give_kvm_access.html", context)
@@ -273,7 +287,10 @@ def getting_data(request):
 
 def user_info(request, user_id):
     user = get_object_or_404(DjangoUser, pk=user_id)
-    if request.user.is_superuser or request.user.username == DjangoUser.objects.get(id=user_id).username:
+    if (
+        request.user.is_superuser
+        or request.user.username == DjangoUser.objects.get(id=user_id).username
+    ):
         user_data = {
             "username": user.username,
             "password": user.password,
@@ -356,6 +373,7 @@ def remove_access(request, user_id):
     user.delete()
     action_description = f"removed {user.username} access\n"
     action_log(request.user.username, action_description)
+
     return JsonResponse({"success": True})
 
 
@@ -503,7 +521,9 @@ class KVMListView(UserPassesTestMixin, ListView):
 @login_required
 def delete_kvm(request, *args, **kwargs):
     kvm = get_object_or_404(KVM, pk=kwargs["kvm_id"])
-    if request.user.is_superuser and kvm.id not in (i.kvm_id.id for i in ServerRoom.objects.all()):
+    if request.user.is_superuser and kvm.id not in (
+        i.kvm_id.id for i in ServerRoom.objects.all()
+    ):
         kvm.delete()
         action_description = f"deleted KVM - {kvm.short_name}\n"
         action_log(request.user.username, action_description)
@@ -576,7 +596,8 @@ class UpdateUser(UserPassesTestMixin, UpdateView):
     def test_func(self, **kwargs):
         return self.request.user.is_superuser or (
             self.request.user.is_staff
-            and self.request.user.username == DjangoUser.objects.get(id=int(self.kwargs['pk'])).username
+            and self.request.user.username
+            == DjangoUser.objects.get(id=int(self.kwargs["pk"])).username
         )
 
     def get_success_url(self):
@@ -587,7 +608,7 @@ class UpdateUser(UserPassesTestMixin, UpdateView):
 
 
 class UserPasswordUpdateView(FormView, UserPassesTestMixin):
-    template_name = 'password_change.html'
+    template_name = "password_change.html"
     form_class = PasswordChangeForm
 
     def test_func(self):
@@ -596,7 +617,7 @@ class UserPasswordUpdateView(FormView, UserPassesTestMixin):
     def get(self, request, user_id):
         user = get_object_or_404(DjangoUser, id=user_id)
         form = self.form_class(user=user)
-        return render(request, self.template_name, {'form': form, 'user': user})
+        return render(request, self.template_name, {"form": form, "user": user})
 
     def post(self, request, user_id):
         user = get_object_or_404(DjangoUser, id=user_id)
@@ -604,11 +625,14 @@ class UserPasswordUpdateView(FormView, UserPassesTestMixin):
         if form.is_valid():
             user = form.save()
             update_session_auth_hash(request, user)
-            messages.success(request, f'The password for user {user.username} was successfully updated!')
-            return redirect(reverse_lazy('kvmwebapp:user_list'))
+            messages.success(
+                request,
+                f"The password for user {user.username} was successfully updated!",
+            )
+            return redirect(reverse_lazy("kvmwebapp:user_list"))
         else:
-            messages.error(request, 'Please correct the errors below.')
-        return render(request, self.template_name, {'form': form, 'user': user})
+            messages.error(request, "Please correct the errors below.")
+        return render(request, self.template_name, {"form": form, "user": user})
 
 
 @login_required
@@ -616,16 +640,17 @@ class UserPasswordUpdateView(FormView, UserPassesTestMixin):
 def reset_user_password(request, user_id):
     user = DjangoUser.objects.get(pk=user_id)
 
-    if request.method == 'POST':
+    if request.method == "POST":
         form = SetPasswordForm(user, request.POST)
         if form.is_valid():
             form.save()
-            return redirect('kvmwebapp:user_list')  # Redirect to user list or change page
+            return redirect(
+                "kvmwebapp:user_list"
+            )  # Redirect to user list or change page
     else:
         form = SetPasswordForm(user)
 
-    return render(request, 'reset_user_password.html', {'form': form, 'user': user})
-
+    return render(request, "reset_user_password.html", {"form": form, "user": user})
 
 
 def logout_view(request):
@@ -657,9 +682,7 @@ def toggle_rack_port_active(request, *args, **kwargs):
     if request.user.is_superuser:
         cross.rack_port_active = not cross.rack_port_active
         cross.save()
-        action_description = (
-            f"toggled rack port active to {cross.rack_port_active} - row: {cross.row}, rack: {cross.rack}, rack port: {cross.rack_port}\n"
-        )
+        action_description = f"toggled rack port active to {cross.rack_port_active} - row: {cross.row}, rack: {cross.rack}, rack port: {cross.rack_port}\n"
         action_log(request.user.username, action_description)
         server_room_url = reverse("kvmwebapp:server_room", args=[cross.server_room.id])
         return redirect(server_room_url)
@@ -698,4 +721,3 @@ class SelectKVMPortView(UserPassesTestMixin, FormView):
         action_description = f"selected KVM port number {cross.kvm_port} - {cross}\n"
         action_log(self.request.user.username, action_description)
         return super().form_valid(form)
-
